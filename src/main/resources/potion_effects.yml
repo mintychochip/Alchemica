@@ -1,0 +1,7 @@
+modifiers:
+  basic_extension:
+    item: "minecraft:redstone"
+    amount:
+  moderate_extension:
+    item: "minecraft:redstone_block"
+    amount:
