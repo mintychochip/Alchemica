@@ -2,6 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/Brew.iml" filepath="$PROJECT_DIR$/.idea/modules/Brew.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/api/Brew.api.main.iml" filepath="$PROJECT_DIR$/.idea/modules/api/Brew.api.main.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/common/Brew.common.main.iml" filepath="$PROJECT_DIR$/.idea/modules/common/Brew.common.main.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/Brew.main.iml" filepath="$PROJECT_DIR$/.idea/modules/Brew.main.iml" />
