@@ -1,7 +1,7 @@
 import io.papermc.hangarpublishplugin.model.Platforms
 
 plugins {
-    id("io.papermc.hangar-publish-plugin") version "0.1.2"
+    id("io.papermc.hangar-publish-plugin") version "0.1.3"
     id("com.github.johnrengelman.shadow") version "8.1.1"
 }
 dependencies {
@@ -47,16 +47,16 @@ hangarPublish {
     publications.register("plugin") {
         version.set(project.version as String)
         channel.set("Snapshot")
-        id.set("cauldron")
+        id.set("Alchemica")
         apiKey.set(System.getenv("HANGAR_API_TOKEN"))
         platforms {
-            register(Platforms.PAPER) {
+           /* register(Platforms.PAPER) {
                 jar.set(tasks.shadowJar.flatMap { it.archiveFile })
                 val versions: List<String> = (property("paperVersion") as String)
                     .split(",")
                     .map { it.trim() }
                 platformVersions.set(versions)
-            }
+            }*/
         }
     }
 }
