@@ -63,7 +63,8 @@ final class Executor implements IExecutor {
       PreparedStatement ps = connection.prepareStatement(query);
       int count = 1;
       for (Object arg : args) {
-        if (arg instanceof Timestamp timestamp) {
+        if (arg instanceof Timestamp) {
+          Timestamp timestamp = (Timestamp) arg;
           ps.setTimestamp(count++, timestamp);
           continue;
         }

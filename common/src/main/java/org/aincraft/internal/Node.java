@@ -1,87 +1,59 @@
 package org.aincraft.internal;
 
-import com.google.common.base.Preconditions;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Consumer;
 import org.aincraft.CauldronIngredient;
-import org.aincraft.IPotionResult.IPotionResultBuilder;
-import org.bukkit.potion.PotionEffectType;
-import org.bukkit.potion.PotionType;
+import org.aincraft.internal.PotionResult.PotionResultContext;
+import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.NotNull;
 
-class Node {
+@ApiStatus.Internal
+final class Node {
 
-  enum NodeType {
-    BASE,
-    EFFECT,
-    MODIFIER
+  private final Set<Node> children = new HashSet<>();
+  private final NodeType nodeType;
+  private final CauldronIngredient ingredient;
+  private final Consumer<PotionResultContext> consumer;
+
+  Node(NodeType nodeType, CauldronIngredient ingredient,
+      Consumer<PotionResultContext> consumer) {
+    this.nodeType = nodeType;
+    this.ingredient = ingredient;
+    this.consumer = consumer;
   }
 
-  protected final Set<ConsumerNode> children = new HashSet<>();
+  Consumer<PotionResultContext> getConsumer() {
+    return consumer;
+  }
 
-  public Set<ConsumerNode> getChildren() {
+  void addChild(Node node) {
+    children.add(node);
+  }
+
+  Set<Node> getChildren() {
     return children;
   }
 
-  public ConsumerNode search(CauldronIngredient ingredient) {
-    for (ConsumerNode child : children) {
-      if (child.ingredient.key().equals(ingredient.key()) &&
-          child.ingredient.getAmount() <= ingredient.getAmount()) {
+  Node search(@NotNull CauldronIngredient ingredient) {
+    for (Node child : children) {
+      if (child == null) {
+        continue;
+      }
+      CauldronIngredient childIngredient = child.getIngredient();
+      if (ingredient.isSimilar(childIngredient)
+          && ingredient.getAmount() >= childIngredient.getAmount()) {
         return child;
       }
     }
     return null;
   }
 
-  public Node add(ConsumerNode node) {
-    children.add(node);
-    return this;
+  NodeType getType() {
+    return nodeType;
   }
 
-  static final class ConsumerNode extends Node {
-
-    private final NodeType nodeType;
-    private final CauldronIngredient ingredient;
-
-    ConsumerNode(NodeType nodeType, CauldronIngredient ingredient,
-        Consumer<IPotionResultBuilder> consumer) {
-      this.nodeType = nodeType;
-      this.ingredient = ingredient;
-      this.consumer = consumer;
-    }
-
-    private final Consumer<IPotionResultBuilder> consumer;
-
-    public Consumer<IPotionResultBuilder> getConsumer() {
-      return consumer;
-    }
-
-    @Override
-    public ConsumerNode add(ConsumerNode node) {
-      super.add(node);
-      return this;
-    }
-
-    public NodeType getType() {
-      return nodeType;
-    }
-
-    public CauldronIngredient getIngredient() {
-      return ingredient;
-    }
-
-    static ConsumerNode effect(PotionEffectType effectType, CauldronIngredient ingredient) {
-      return new ConsumerNode(NodeType.EFFECT, ingredient,
-          container -> container.addType(effectType));
-    }
-
-    static ConsumerNode base(PotionType type, CauldronIngredient ingredient) throws IllegalArgumentException {
-      Preconditions.checkArgument(
-          type == PotionType.AWKWARD || type == PotionType.WATER || type == PotionType.THICK
-              || type == PotionType.MUNDANE);
-      return new ConsumerNode(NodeType.BASE,ingredient,container -> container.setBaseType(type));
-    }
+  CauldronIngredient getIngredient() {
+    return ingredient;
   }
 }
-
-

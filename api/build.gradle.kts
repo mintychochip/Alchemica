@@ -1,3 +1,4 @@
 dependencies {
-    compileOnly("io.papermc.paper:paper-api:1.17-R0.1-SNAPSHOT")
+    compileOnly("org.spigotmc:spigot-api:1.12.2-R0.1-SNAPSHOT") // or lowest supported
+    api("org.jetbrains:annotations:24.1.0")
 }

@@ -4,25 +4,28 @@ import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 import java.util.Objects;
 import java.util.function.Function;
-import net.kyori.adventure.key.Key;
-import net.kyori.adventure.key.Keyed;
-import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
 import org.jetbrains.annotations.NotNull;
 
-public final class CauldronIngredient implements
-    Keyed {
+public final class CauldronIngredient {
 
   @Expose
+  @NotNull
   @SerializedName("item-key")
-  private final Key key;
+  private NamespacedKey itemKey;
+
   @Expose
   @SerializedName("amount")
   private int amount;
 
-  public CauldronIngredient(Key key,
+  public CauldronIngredient(@NotNull NamespacedKey itemKey,
       int amount) {
-    this.key = key;
+    this.itemKey = itemKey;
     this.amount = amount;
+  }
+
+  public CauldronIngredient(@NotNull NamespacedKey itemKey) {
+    this(itemKey,1);
   }
 
   @Override
@@ -36,7 +39,7 @@ public final class CauldronIngredient implements
 
     CauldronIngredient that = (CauldronIngredient) obj;
 
-    return amount == that.amount && key.equals(((CauldronIngredient) obj).key);
+    return amount == that.amount && itemKey.equals(((CauldronIngredient) obj).itemKey);
   }
 
   public void setAmount(int amount) {
@@ -46,26 +49,21 @@ public final class CauldronIngredient implements
   @Override
   public String toString() {
     return "Ingredient{" +
-        "key=" + key +
+        "item-key=" + itemKey +
         ", amount=" + amount +
         '}';
   }
 
-  public static CauldronIngredient fromMaterial(Material material) {
-    return new CauldronIngredient(material.getKey(), 1);
+  public CauldronIngredient deepCopy() {
+    return new CauldronIngredient(itemKey, amount);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(key, amount);
+    return Objects.hash(itemKey, amount);
   }
 
-  @Override
-  public @NotNull Key key() {
-    return key;
-  }
-
-  public void updateAmount(Function<Integer,Integer> update) {
+  public void updateAmount(Function<Integer, Integer> update) {
     amount = update.apply(amount);
   }
 
@@ -73,7 +71,15 @@ public final class CauldronIngredient implements
     return amount;
   }
 
-  public CauldronIngredient deepCopy() {
-    return new CauldronIngredient(key,amount);
+  public @NotNull NamespacedKey getItemKey() {
+    return itemKey;
+  }
+
+  public boolean isSimilar(@NotNull CauldronIngredient other) {
+    return other.getItemKey().equals(itemKey);
+  }
+
+  public boolean isMaterial() {
+    return NamespacedKey.MINECRAFT.equals(itemKey.getNamespace());
   }
 }

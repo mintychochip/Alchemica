@@ -16,6 +16,7 @@ public final class Cauldron {
 
   private int completed;
 
+
   public Cauldron(UUID id, Location location, List<CauldronIngredient> ingredients, int completed) {
     this.id = id;
     this.location = location;
@@ -25,7 +26,7 @@ public final class Cauldron {
 
   static Cauldron create(Location location) {
     UUID id = UUID.randomUUID();
-    return new Cauldron(id,location,new ArrayList<>(), 0);
+    return new Cauldron(id, location, new ArrayList<>(), 0);
   }
 
   public Location getLocation() {
@@ -45,12 +46,13 @@ public final class Cauldron {
       ingredients.add(ingredient);
       return;
     }
+
     CauldronIngredient lastIngredient = ingredients.get(ingredients.size() - 1);
-    if (lastIngredient.key().equals(ingredient.key())) {
+    if (lastIngredient.isSimilar(ingredient)) {
       lastIngredient.updateAmount(amount -> amount + ingredient.getAmount());
-    } else {
-      ingredients.add(ingredient);
+      return;
     }
+    ingredients.add(ingredient);
   }
 
   public void setCompleted(boolean completed) {

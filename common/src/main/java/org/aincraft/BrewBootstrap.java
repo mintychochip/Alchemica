@@ -3,7 +3,8 @@ package org.aincraft;
 import java.lang.reflect.InvocationTargetException;
 import org.aincraft.config.PluginConfigurationFactory;
 import org.aincraft.internal.Brew;
-import org.bukkit.Bukkit;
+import org.aincraft.providers.VersionProviderFactory;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public final class BrewBootstrap extends JavaPlugin {
@@ -12,7 +13,9 @@ public final class BrewBootstrap extends JavaPlugin {
 
   @Override
   public void onEnable() {
-    instance = new Brew(this, new PluginConfigurationFactory(this).create(), createAdapter());
+    PluginConfigurationFactory factory = new PluginConfigurationFactory(this);
+    IPluginConfiguration pluginConfiguration = factory.create();
+    instance = new Brew(this, pluginConfiguration, getVersionProvider(this,pluginConfiguration));
     instance.load();
     instance.enable();
   }
@@ -22,26 +25,22 @@ public final class BrewBootstrap extends JavaPlugin {
     instance.disable();
   }
 
-  @SuppressWarnings("unchecked")
-  private IVersionAdapter createAdapter() {
-    String version = Bukkit.getBukkitVersion();
-    Class<?> factoryClazz;
+  private static VersionProviderFactory getVersionProvider(Plugin plugin,
+      IPluginConfiguration pluginConfiguration) {
     try {
-      if (version.startsWith("1.21")) {
-        factoryClazz = Class.forName("org.aincraft.v1_21_AdapterFactory");
-      } else if (version.startsWith("1.17")) {
-        factoryClazz = Class.forName("org.aincraft.v1_17_AdapterFactory");
-      } else {
-        throw new UnsupportedOperationException("unsupported version: " + version);
-      }
-    } catch (ClassNotFoundException ex) {
-      throw new RuntimeException(ex);
-    }
-    try {
-      IFactory<IVersionAdapter> factory = (IFactory<IVersionAdapter>) factoryClazz.getDeclaredConstructor().newInstance();
-      return factory.create();
-    } catch (Exception ex) {
-      throw new RuntimeException(ex);
+      Class<?> provider = Class.forName("org.aincraft.providers.VersionProviderFactory");
+      return (VersionProviderFactory) provider.getDeclaredConstructor(Plugin.class,
+          IPluginConfiguration.class).newInstance(plugin, pluginConfiguration);
+    } catch (ClassNotFoundException e) {
+      throw new RuntimeException(e);
+    } catch (InvocationTargetException e) {
+      throw new RuntimeException(e);
+    } catch (InstantiationException e) {
+      throw new RuntimeException(e);
+    } catch (IllegalAccessException e) {
+      throw new RuntimeException(e);
+    } catch (NoSuchMethodException e) {
+      throw new RuntimeException(e);
     }
   }
 }

@@ -4,11 +4,10 @@ import com.google.common.base.Preconditions;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import net.kyori.adventure.key.Key;
+import org.aincraft.IConfiguration.IYamlConfiguration;
 import org.aincraft.IDurationStage;
-import org.aincraft.config.IConfiguration.IYamlConfiguration;
-import org.aincraft.container.IDurationStageRegistry;
 import org.aincraft.IFactory;
+import org.aincraft.container.IDurationStageRegistry;
 import org.bukkit.NamespacedKey;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.plugin.Plugin;
@@ -27,53 +26,87 @@ final class DurationStageRegistryFactory implements IFactory<IDurationStageRegis
   @Override
   public IDurationStageRegistry create() {
     Preconditions.checkArgument(configuration.contains("duration-stages"));
-    DurationStageRegistry registry = new DurationStageRegistry();
+    List<IDurationStage> stages = new ArrayList<>();
     ConfigurationSection durationSection = configuration.getConfigurationSection("duration-stages");
     for (String durationStageKey : durationSection.getKeys(false)) {
       int ticks = durationSection.getInt(durationStageKey);
-      IDurationStage stage = new DurationStage(new NamespacedKey(plugin, durationStageKey), ticks);
-      registry.stages.add(stage);
+      IDurationStage stage = new DurationStage(new NamespacedKey(plugin, durationStageKey), ticks,
+          stages, stages.size());
+      stages.add(stage);
     }
-    return registry;
+    return new DurationStageRegistry(stages);
   }
 
-  private record DurationStage(Key key, int ticks) implements IDurationStage {
+  private static final class DurationStage implements IDurationStage {
+
+    private final NamespacedKey key;
+    private final int ticks;
+    private final List<IDurationStage> stages;
+    private final int index;
+
+    DurationStage(NamespacedKey key, int ticks, List<IDurationStage> stages, int index) {
+      this.key = key;
+      this.ticks = ticks;
+      this.stages = stages;
+      this.index = index;
+    }
 
     @Override
     public int getTicks() {
       return ticks;
+    }
+
+    @Override
+    public IDurationStage next() throws IllegalStateException {
+      Preconditions.checkArgument(hasNext());
+      return stages.get(index + 1);
+    }
+
+    @Override
+    public IDurationStage previous() throws IllegalStateException {
+      Preconditions.checkArgument(hasPrevious());
+      return stages.get(index - 1);
+    }
+
+    @Override
+    public boolean hasNext() {
+      return index + 1 <= stages.size();
+    }
+
+    @Override
+    public boolean hasPrevious() {
+      return index - 1 >= 0;
+    }
+
+    @Override
+    public NamespacedKey getKey() {
+      return key;
     }
   }
 
   private static final class DurationStageRegistry implements
       IDurationStageRegistry {
 
-    private final List<IDurationStage> stages = new ArrayList<>();
+    private final List<IDurationStage> stages;
 
-    @Override
-    public IDurationStage step(IDurationStage current, int steps) {
-      int index = stages.indexOf(current);
-      if (index == -1) {
-        return current;
-      }
-      int newIndex = Math.max(0, Math.min(index + steps, stages.size() - 1));
-      return stages.get(newIndex);
-    }
-
-    @Override
-    public IDurationStage get(Key key) {
-      return stages.stream().filter(stage -> stage.key().equals(key)).findFirst().orElse(null);
-    }
-
-    @Override
-    public boolean isRegistered(Key key) {
-      return stages.stream().anyMatch(stage -> stage.key().equals(key));
+    private DurationStageRegistry(List<IDurationStage> stages) {
+      this.stages = stages;
     }
 
     @NotNull
     @Override
     public Iterator<IDurationStage> iterator() {
       return stages.iterator();
+    }
+
+    @Override
+    public IDurationStage get(NamespacedKey key) {
+      return stages.stream().filter(stage -> stage.getKey().equals(key)).findFirst().orElse(null);
+    }
+
+    @Override
+    public boolean isRegistered(NamespacedKey key) {
+      return stages.stream().anyMatch(stage -> stage.getKey().equals(key));
     }
   }
 }

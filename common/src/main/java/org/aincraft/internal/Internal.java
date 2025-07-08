@@ -7,16 +7,13 @@ import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonToken;
 import com.google.gson.stream.JsonWriter;
 import java.io.IOException;
-import java.util.List;
-import net.kyori.adventure.key.Key;
-import org.aincraft.config.IConfiguration.IYamlConfiguration;
-import org.aincraft.config.IPluginConfiguration;
-import org.aincraft.container.IDurationStageRegistry;
-import org.aincraft.IPotionTrie;
-import org.aincraft.IRegistry;
+import org.aincraft.IConfiguration.IYamlConfiguration;
+import org.aincraft.IPluginConfiguration;
 import org.aincraft.IStorage;
-import org.aincraft.container.RegistrableItem;
-import org.aincraft.internal.Node.ConsumerNode;
+import org.aincraft.container.IDurationStageRegistry;
+import org.aincraft.providers.IPotionProvider;
+import org.aincraft.providers.IVersionProviders;
+import org.aincraft.providers.VersionProviderFactory;
 import org.aincraft.storage.DatabaseFactory;
 import org.aincraft.storage.Extractor.ResourceExtractor;
 import org.bukkit.NamespacedKey;
@@ -24,32 +21,32 @@ import org.bukkit.plugin.Plugin;
 
 final class Internal {
 
-  private final IRegistry<RegistrableItem> itemRegistry;
-  private final KeyParser keyParser;
-  private final IPotionTrie potionTrie;
-  private final IDurationStageRegistry durationRegistry;
-  private final IPotionDurationMap potionDurationMap;
-  private final IStorage database;
-  private final Gson gson;
-  private final CauldronDao cauldronDao;
+  final Trie potionTrie;
+  final IDurationStageRegistry durationRegistry;
+  final IPotionDurationMap potionDurationMap;
+  final IStorage database;
+  final Gson gson;
+  final CauldronDao cauldronDao;
+  final IVersionProviders versionProviders;
 
   Internal(
-      IRegistry<RegistrableItem> itemRegistry,
-      KeyParser keyParser,
-      IPotionTrie potionTrie,
+      Trie potionTrie,
       IDurationStageRegistry durationRegistry,
       IPotionDurationMap potionDurationMap,
       IStorage database,
       Gson gson,
-      CauldronDao cauldronDao) {
-    this.itemRegistry = itemRegistry;
-    this.keyParser = keyParser;
+      CauldronDao cauldronDao, IVersionProviders versionProviders) {
     this.potionTrie = potionTrie;
     this.durationRegistry = durationRegistry;
     this.potionDurationMap = potionDurationMap;
     this.database = database;
     this.gson = gson;
     this.cauldronDao = cauldronDao;
+    this.versionProviders = versionProviders;
+  }
+
+  public IVersionProviders getVersionProviders() {
+    return versionProviders;
   }
 
   public CauldronDao getCauldronDao() {
@@ -64,11 +61,7 @@ final class Internal {
     return potionDurationMap;
   }
 
-  public IRegistry<RegistrableItem> getItemRegistry() {
-    return itemRegistry;
-  }
-
-  public IPotionTrie getPotionTrie() {
+  public Trie getPotionTrie() {
     return potionTrie;
   }
 
@@ -76,76 +69,65 @@ final class Internal {
     return database;
   }
 
-  public KeyParser getKeyParser() {
-    return keyParser;
-  }
-
   public static Internal create(Brew brew) {
     Plugin plugin = brew.getPlugin();
     IPluginConfiguration config = brew.getPluginConfiguration();
-    IYamlConfiguration general = config.getGeneralConfiguration();
+    VersionProviderFactory versionProviderFactory = brew.getVersionProviderFactory();
+    IVersionProviders versionProviders = versionProviderFactory.create();
+    IYamlConfiguration general = config.get("general");
+    IPotionProvider potionProvider = versionProviders.getPotionProvider();
 
-    IRegistry<RegistrableItem> itemRegistry = new SimpleRegistry<>();
-
-    KeyParser keyParser = new KeyParser(itemRegistry);
     IDurationStageRegistry durationRegistry = new DurationStageRegistryFactory(plugin,
         general).create();
     IPotionDurationMap durationMap = new PotionDurationMapFactory(plugin, general,
-        durationRegistry).create();
+        durationRegistry, potionProvider).create();
 
-    List<ConsumerNode> effectNodes = new EffectNodeRegistryFactory(plugin, general,
-        keyParser).create();
-    List<ConsumerNode> modifierNodes = new ModifierNodeRegistryFactory(plugin, general, keyParser,
-        durationRegistry).create();
-
-    IPotionTrie trie = new PotionTrieFactory(effectNodes, modifierNodes).create();
+    Trie trie = new PotionTrieFactory(
+        new PotionEffectMetaFactory(durationMap), general, potionProvider).create();
 
     IStorage database = new DatabaseFactory(
         plugin.getLogger(),
         plugin,
-        config.getDatabaseConfiguration(),
+        config.get("database"),
         new ResourceExtractor()
     ).create();
 
     Gson gson = new GsonBuilder()
-        .registerTypeAdapter(Key.class, new KeyAdapter())
+        .registerTypeAdapter(NamespacedKey.class, new KeyAdapter())
         .excludeFieldsWithoutExposeAnnotation()
         .create();
 
     CauldronDao cauldronDao = new CauldronDao(database, gson);
 
     return new Internal(
-        itemRegistry,
-        keyParser,
         trie,
         durationRegistry,
         durationMap,
         database,
         gson,
-        cauldronDao
+        cauldronDao,
+        versionProviders
     );
   }
 
-  private static final class KeyAdapter extends TypeAdapter<Key> {
+  private static final class KeyAdapter extends TypeAdapter<NamespacedKey> {
 
     @Override
-    public void write(JsonWriter out, Key value) throws IOException {
+    public void write(JsonWriter out, NamespacedKey value) throws IOException {
       if (value == null) {
         out.nullValue();
         return;
       }
-      out.value(value.namespace() + ":" + value.value());
+      out.value(value.getNamespace() + ":" + value.getKey());
     }
 
     @Override
-    public Key read(JsonReader in) throws IOException {
+    public NamespacedKey read(JsonReader in) throws IOException {
       JsonToken peek = in.peek();
       if (peek == JsonToken.NULL) {
         return null;
       }
-      String raw = in.nextString();
-      String[] split = raw.split(":");
-      return new NamespacedKey(split[0], split[1]);
+      return Brew.createKey(in.nextString());
     }
   }
 }

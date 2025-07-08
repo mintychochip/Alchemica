@@ -1,10 +1,14 @@
 package org.aincraft.config;
 
-import org.aincraft.config.IConfiguration.IYamlConfiguration;
-import org.aincraft.IFactory;
+import java.util.HashMap;
+import java.util.Map;
+import org.aincraft.ConfigurationFactory;
+import org.aincraft.IConfiguration;
+import org.aincraft.IConfiguration.IYamlConfiguration;
+import org.aincraft.IPluginConfiguration;
 import org.bukkit.plugin.Plugin;
 
-public final class PluginConfigurationFactory implements IFactory<IPluginConfiguration> {
+public final class PluginConfigurationFactory {
 
   private final Plugin plugin;
 
@@ -12,29 +16,32 @@ public final class PluginConfigurationFactory implements IFactory<IPluginConfigu
     this.plugin = plugin;
   }
 
-  @Override
   public IPluginConfiguration create() {
     ConfigurationFactory factory = new ConfigurationFactory(plugin);
-    return new PluginConfiguration(factory.yaml("general.yml"), factory.yaml("database.yml"));
+    Map<String,IYamlConfiguration> configurations = new HashMap<>();
+    configurations.put("general",factory.yaml("general.yml"));
+    configurations.put("database",factory.yaml("database.yml"));
+    configurations.put("legacy",factory.yaml("legacy.yml"));
+    return new PluginConfiguration(configurations);
   }
 
-  private record PluginConfiguration(IYamlConfiguration general, IYamlConfiguration database) implements
+  private static final class PluginConfiguration implements
       IPluginConfiguration {
 
-    @Override
-    public IYamlConfiguration getGeneralConfiguration() {
-      return general;
+    private final Map<String, IYamlConfiguration> configurations;
+
+    private PluginConfiguration(Map<String, IYamlConfiguration> configurations) {
+      this.configurations = configurations;
     }
 
     @Override
-    public IYamlConfiguration getDatabaseConfiguration() {
-      return database;
+    public IYamlConfiguration get(String configurationKey) {
+      return configurations.get(configurationKey);
     }
 
     @Override
     public void reload() {
-      general.reload();
-      database.reload();
+      configurations.values().forEach(IConfiguration::reload);
     }
   }
 }

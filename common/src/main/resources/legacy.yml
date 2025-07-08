@@ -1,0 +1,41 @@
+# This section defines mappings from Minecraft 1.13+ item identifiers (as used by NamespacedKey strings)
+# to their equivalent legacy Material names in Minecraft 1.12 and below.
+#
+# You may modify or extend this list to support additional brewing ingredients or custom items.
+# However, you must know:
+#   - the 1.13+ item ID (e.g., "glistering_melon_slice")
+#   - the corresponding 1.12 Material name (e.g., "speckled_melon")
+#   - and optionally the data value (e.g., data: 1 for enchanted golden apple)
+#
+# If the "data" field is omitted, it defaults to 0.
+#
+# Incorrect material or data values may cause indeterminate behavior.
+
+legacy-mapping:
+  nether_wart: { material: nether_stalk }
+  glistering_melon_slice: { material: speckled_melon }
+  sugar: { material: sugar }
+  blaze_powder: { material: blaze_powder }
+  gunpowder: { material: sulphur }
+  glowstone_dust: { material: glowstone_dust }
+  redstone: { material: redstone }
+  redstone_block: { material: redstone_block }
+  glowstone: { material: glowstone }
+  fermented_spider_eye: { material: fermented_spider_eye }
+  spider_eye: { material: spider_eye }
+  magma_cream: { material: magma_cream }
+  ghast_tear: { material: ghast_tear }
+  rabbit_foot: { material: rabbit_foot }
+  pufferfish: { material: raw_fish, data: 3 }
+  golden_carrot: { material: golden_carrot }
+  ink_sac: { material: ink_sack }
+  rotten_flesh: { material: rotten_flesh }
+  golden_apple: { material: golden_apple }
+  enchanted_golden_apple: { material: golden_apple, data: 1 }
+  chorus_fruit: { material: chorus_fruit }
+  emerald: { material: emerald }
+  feather: { material: feather }
+  silverfish_spawn_egg: { material: monster_egg }
+  string: { material: string }
+  slime_ball: { material: slime_ball }
+  dragons_breath: { material: dragons_breath }

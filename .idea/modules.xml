@@ -2,12 +2,14 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/Brew.iml" filepath="$PROJECT_DIR$/.idea/modules/Brew.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/api/Brew.api.main.iml" filepath="$PROJECT_DIR$/.idea/modules/api/Brew.api.main.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/common/Brew.common.main.iml" filepath="$PROJECT_DIR$/.idea/modules/common/Brew.common.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/common/Brew.common.test.iml" filepath="$PROJECT_DIR$/.idea/modules/common/Brew.common.test.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/Brew.main.iml" filepath="$PROJECT_DIR$/.idea/modules/Brew.main.iml" />
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/versions/v1_17_R1/Brew.versions.v1_17_R1.main.iml" filepath="$PROJECT_DIR$/.idea/modules/versions/v1_17_R1/Brew.versions.v1_17_R1.main.iml" />
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/versions/v1_21_R1/Brew.versions.v1_21_R1.main.iml" filepath="$PROJECT_DIR$/.idea/modules/versions/v1_21_R1/Brew.versions.v1_21_R1.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/versions/base/Brew.versions.base.main.iml" filepath="$PROJECT_DIR$/.idea/modules/versions/base/Brew.versions.base.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/versions/base/Brew.versions.base.test.iml" filepath="$PROJECT_DIR$/.idea/modules/versions/base/Brew.versions.base.test.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/versions/paper/Brew.versions.paper.main.iml" filepath="$PROJECT_DIR$/.idea/modules/versions/paper/Brew.versions.paper.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/versions/v1_12_R1/Brew.versions.v1_12_R1.main.iml" filepath="$PROJECT_DIR$/.idea/modules/versions/v1_12_R1/Brew.versions.v1_12_R1.main.iml" />
     </modules>
   </component>
 </project>

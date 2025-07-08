@@ -1,7 +1,16 @@
 package org.aincraft;
 
-import net.kyori.adventure.key.Keyed;
+import org.bukkit.Keyed;
 
 public interface IDurationStage extends Keyed {
+
   int getTicks();
+
+  IDurationStage next() throws IllegalStateException;
+
+  IDurationStage previous() throws IllegalStateException;
+
+  boolean hasNext();
+
+  boolean hasPrevious();
 }

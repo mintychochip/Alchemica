@@ -36,8 +36,8 @@ abstract class FlatFileSource implements IConnectionSource {
 
   private String getJdbcUrl() {
     Path filePath = this.getFilePath();
-    return "jdbc:%s:%s".formatted(this.getType().getIdentifier(),
-        filePath.toAbsolutePath().toString());
+    return String.format("jdbc:%s:%s",this.getType().getIdentifier(),
+        filePath.toAbsolutePath());
   }
 
   private void createFlatFile(File dbFile) {
@@ -60,7 +60,7 @@ abstract class FlatFileSource implements IConnectionSource {
 
   private Path getFilePath() {
     return parentDir.resolve(
-        "%s-%s.db".formatted(plugin.getName().toLowerCase(), this.getType().getIdentifier()));
+        String.format("%s-%s.db", plugin.getName().toLowerCase(), this.getType().getIdentifier()));
   }
 
   @Override

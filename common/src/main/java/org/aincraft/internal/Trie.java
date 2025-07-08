@@ -2,13 +2,21 @@ package org.aincraft.internal;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Map.Entry;
+import java.util.stream.Collectors;
 import org.aincraft.CauldronIngredient;
 import org.aincraft.IPotionResult;
-import org.aincraft.IPotionResult.IPotionResultBuilder;
-import org.aincraft.IPotionTrie;
-import org.aincraft.internal.Node.ConsumerNode;
+import org.aincraft.internal.PotionResult.PotionResultContext;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.inventory.meta.PotionMeta;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
+import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.NotNull;
 
-final class Trie implements IPotionTrie {
+@ApiStatus.Internal
+final class Trie {
 
   private final Node root;
 
@@ -16,57 +24,49 @@ final class Trie implements IPotionTrie {
     this.root = root;
   }
 
-  @Override
-  public IPotionResult search(IPotionResultBuilder builder, Collection<CauldronIngredient> ingredients) {
+  public IPotionResult search(Collection<CauldronIngredient> ingredients) {
     Node node = root;
+    PotionResultContext context = new PotionResultContext();
     List<CauldronIngredient> working = ingredients.stream().map(CauldronIngredient::deepCopy)
-        .toList();
+        .collect(Collectors.toList());
     int index = 0;
     while (index < working.size()) {
       CauldronIngredient current = working.get(index);
-      ConsumerNode child = node.search(current);
+      Node child = node.search(current);
       if (child == null) {
         return null;
       }
       CauldronIngredient required = child.getIngredient();
       current.updateAmount(amount -> amount - required.getAmount());
-      child.getConsumer().accept(builder);
+      child.getConsumer().accept(context);
       node = child;
       if (current.getAmount() == 0) {
         index++;
       }
     }
-    return builder.build();
-  }
-  @Override
-  public String toString() {
-    StringBuilder sb = new StringBuilder();
-    toStringRecursive(root, sb, 0, 3);
-    return sb.toString();
+    return fromContext(context);
   }
 
-  private void toStringRecursive(Node node, StringBuilder sb, int depth, int maxDepth) {
-    if (depth >= maxDepth) {
-      indent(sb, depth);
-      sb.append("... (max depth reached)\n");
-      return;
+  private static PotionResult fromContext(@NotNull PotionResultContext context) {
+    ItemStack itemStack = new ItemStack(context.potionMaterialSupplier.get());
+    ItemMeta itemMeta = itemStack.getItemMeta();
+
+    PotionMeta potionMeta = (PotionMeta) itemMeta;
+    if (context.potionTypeConsumer != null) {
+      context.potionTypeConsumer.accept(potionMeta);
     }
 
-    for (Node.ConsumerNode child : node.getChildren()) {
-      indent(sb, depth);
-      sb.append("- [")
-          .append(child.getType())
-          .append("] ")
-          .append(" <- ")
-          .append(child.getIngredient().toString())
-          .append("\n");
-
-      toStringRecursive(child, sb, depth + 1, maxDepth);
+    for (Entry<PotionEffectType, PotionEffectMeta> entry : context.potionMetaMap.entrySet()) {
+      PotionEffectMeta meta = entry.getValue();
+      PotionEffectType type = entry.getKey();
+      context.metaConsumer.accept(meta);
+      potionMeta.addCustomEffect(new PotionEffect(type,
+          meta.getDuration().getTicks(),
+          meta.getAmplifier(),
+          meta.isAmbient(),
+          meta.isParticles()), true);
     }
+    itemStack.setItemMeta(potionMeta);
+    return new PotionResult(itemStack, null);
   }
-
-  private void indent(StringBuilder sb, int depth) {
-    sb.append("  ".repeat(depth));
-  }
-
 }

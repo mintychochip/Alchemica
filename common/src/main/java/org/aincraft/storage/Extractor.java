@@ -29,7 +29,7 @@ public interface Extractor {
       try (InputStream resourceAsStream = loader.getResourceAsStream(resourcePath.toString())) {
         if (resourceAsStream == null) {
           throw new FileNotFoundException(
-              "unable to locate resource at path: %s".formatted(resourcePath));
+              String.format("unable to locate resource at path: %s",resourcePath));
         }
         Path parentDir = outPath.getParent();
         if (parentDir != null && !Files.exists(parentDir)) {

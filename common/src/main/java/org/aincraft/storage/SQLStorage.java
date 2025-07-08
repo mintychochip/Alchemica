@@ -1,8 +1,10 @@
 package org.aincraft.storage;
 
+import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -11,6 +13,7 @@ import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import org.aincraft.IStorage;
 
 final class SQLStorage implements IStorage {
@@ -67,16 +70,22 @@ final class SQLStorage implements IStorage {
 
   private List<String> getSqlTables() {
     try (InputStream resourceStream = extractor.getResourceStream(
-        "sql/%s.sql".formatted(source.getType().getIdentifier()))) {
-      String tables = new String(resourceStream.readAllBytes(), StandardCharsets.UTF_8);
+        String.format("sql/%s.sql", source.getType().getIdentifier()));
+        BufferedReader reader = new BufferedReader(
+            new InputStreamReader(resourceStream, StandardCharsets.UTF_8))) {
+
+      String tables = reader.lines().collect(Collectors.joining("\n"));
+
       return Arrays.stream(tables.split(";"))
           .map(s -> s.trim() + ";")
           .filter(s -> !s.equals(";"))
-          .toList();
+          .collect(Collectors.toList());
+
     } catch (FileNotFoundException e) {
       throw new RuntimeException(e);
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
   }
+
 }

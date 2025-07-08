@@ -1,11 +1,11 @@
 package org.aincraft;
 
-import net.kyori.adventure.key.Key;
-import net.kyori.adventure.key.Keyed;
+import org.bukkit.Keyed;
+import org.bukkit.NamespacedKey;
 
 public interface IRegistry<T extends Keyed> extends Iterable<T> {
 
-  T get(Key key);
+  T get(NamespacedKey key);
 
-  boolean isRegistered(Key key);
+  boolean isRegistered(NamespacedKey key);
 }

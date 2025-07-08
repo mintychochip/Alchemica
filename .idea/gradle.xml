@@ -11,8 +11,9 @@
             <option value="$PROJECT_DIR$/api" />
             <option value="$PROJECT_DIR$/common" />
             <option value="$PROJECT_DIR$/versions" />
-            <option value="$PROJECT_DIR$/versions/v1_17_R1" />
-            <option value="$PROJECT_DIR$/versions/v1_21_R1" />
+            <option value="$PROJECT_DIR$/versions/base" />
+            <option value="$PROJECT_DIR$/versions/paper" />
+            <option value="$PROJECT_DIR$/versions/v1_12_R1" />
           </set>
         </option>
       </GradleProjectSettings>

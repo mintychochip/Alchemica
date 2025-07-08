@@ -1,33 +1,37 @@
 package org.aincraft.internal;
 
+import com.google.common.base.Preconditions;
 import org.aincraft.IBrew;
-import org.aincraft.command.Reload;
-import org.aincraft.config.IPluginConfiguration;
-import org.aincraft.IRegistry;
+import org.aincraft.IPluginConfiguration;
 import org.aincraft.IStorage;
-import org.aincraft.IVersionAdapter;
-import org.aincraft.container.RegistrableItem;
+import org.aincraft.command.Reload;
+import org.aincraft.providers.VersionProviderFactory;
 import org.bukkit.Bukkit;
+import org.bukkit.NamespacedKey;
 import org.bukkit.plugin.Plugin;
 
 public final class Brew implements IBrew {
 
   private final Plugin plugin;
-  private Internal internal;
+  static Internal internal;
   private final IPluginConfiguration pluginConfiguration;
-  private final IVersionAdapter adapter;
+  private final VersionProviderFactory versionProviderFactory;
 
-  public Brew(Plugin plugin, IPluginConfiguration pluginConfiguration, IVersionAdapter adapter) {
+  public Brew(Plugin plugin,
+      IPluginConfiguration pluginConfiguration, VersionProviderFactory versionProviderFactory) {
     this.plugin = plugin;
     this.pluginConfiguration = pluginConfiguration;
-    this.adapter = adapter;
+    this.versionProviderFactory = versionProviderFactory;
+    internal = Internal.create(this);
+  }
 
-    this.internal = Internal.create(this);
+  public VersionProviderFactory getVersionProviderFactory() {
+    return versionProviderFactory;
   }
 
   @Override
   public void load() {
-    IRegistry<RegistrableItem> itemRegistry = new SimpleRegistry<>();
+
   }
 
   public void refresh() {
@@ -43,7 +47,7 @@ public final class Brew implements IBrew {
 
   @Override
   public void enable() {
-    Bukkit.getPluginManager().registerEvents(new CauldronListener(this),plugin);
+    Bukkit.getPluginManager().registerEvents(new CauldronListener(this), plugin);
     Bukkit.getPluginCommand("creload").setExecutor(new Reload(this));
   }
 
@@ -57,10 +61,6 @@ public final class Brew implements IBrew {
     }
   }
 
-  public IVersionAdapter getVersionAdapter() {
-    return adapter;
-  }
-
   public Plugin getPlugin() {
     return plugin;
   }
@@ -71,5 +71,14 @@ public final class Brew implements IBrew {
 
   Internal getInternal() {
     return internal;
+  }
+
+  static NamespacedKey createKey(String keyString) throws IllegalArgumentException {
+    Preconditions.checkArgument(!keyString.isEmpty());
+    String[] split = keyString.split(":");
+    if (split.length == 1) {
+      return NamespacedKey.minecraft(split[0]);
+    }
+    return new NamespacedKey(split[0], split[1]);
   }
 }
