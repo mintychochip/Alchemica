@@ -14,6 +14,8 @@
             <option value="$PROJECT_DIR$/versions/base" />
             <option value="$PROJECT_DIR$/versions/paper" />
             <option value="$PROJECT_DIR$/versions/v1_12_R1" />
+            <option value="$PROJECT_DIR$/versions/v1_13_R0" />
+            <option value="$PROJECT_DIR$/versions/v1_17_R0" />
           </set>
         </option>
       </GradleProjectSettings>

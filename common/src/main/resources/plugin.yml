@@ -1,8 +1,8 @@
 name: Brew
 version: '1.1'
 main: org.aincraft.BrewBootstrap
-api-version: '1.17'
 authors: [ mintychochip ]
+api-version: '1.13'
 commands:
   creload:
     description: hot reloads configs

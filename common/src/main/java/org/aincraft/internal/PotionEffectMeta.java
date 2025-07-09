@@ -11,11 +11,11 @@ final class PotionEffectMeta {
   private boolean ambient;
   private boolean particles;
 
-  PotionEffectMeta(IDurationStage duration) {
+  PotionEffectMeta(IDurationStage duration, int amplifier, boolean ambient, boolean particles) {
     this.duration = duration;
-    this.amplifier = 0;
-    this.ambient = false;
-    this.particles = true;
+    this.amplifier = amplifier;
+    this.ambient = ambient;
+    this.particles = particles;
   }
 
   IDurationStage getDuration() {

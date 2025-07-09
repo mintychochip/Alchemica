@@ -3,9 +3,9 @@ package org.aincraft.providers;
 import java.util.List;
 import org.bukkit.NamespacedKey;
 import org.bukkit.inventory.meta.PotionMeta;
+import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.potion.PotionType;
-import org.jetbrains.annotations.Nullable;
 
 public interface IPotionProvider {
 
@@ -19,10 +19,9 @@ public interface IPotionProvider {
 
   PotionType getType(NamespacedKey key) throws IllegalArgumentException;
 
-  @Nullable
-  PotionEffectType getEffectType(NamespacedKey key) throws IllegalStateException;
+  PotionEffectType getEffectType(NamespacedKey key) throws IllegalArgumentException;
 
-  List<PotionEffectType> getEffectTypes(PotionType type);
+  List<PotionEffect> getEffects(PotionType type);
 
   void setBasePotionType(PotionMeta meta, PotionType type);
 

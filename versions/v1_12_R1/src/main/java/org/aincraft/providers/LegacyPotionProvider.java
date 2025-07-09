@@ -5,9 +5,11 @@ import com.google.common.collect.HashBiMap;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import org.bukkit.Color;
 import org.bukkit.NamespacedKey;
 import org.bukkit.inventory.meta.PotionMeta;
 import org.bukkit.potion.PotionData;
+import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.potion.PotionType;
 
@@ -83,16 +85,25 @@ public final class LegacyPotionProvider extends PotionProvider {
   }
 
   @Override
-  public PotionEffectType getEffectType(NamespacedKey key) {
+  public PotionEffectType getEffectType(NamespacedKey key) throws IllegalArgumentException {
     String name = key.getKey();
-    return LEGACY_POTION_EFFECT_MAP.inverse().getOrDefault(name, PotionEffectType.getByName(name));
+    BiMap<String, PotionEffectType> inverse = LEGACY_POTION_EFFECT_MAP.inverse();
+    if (inverse.containsKey(name)) {
+      return inverse.get(name);
+    }
+    PotionEffectType effectType = PotionEffectType.getByName(name);
+    if (effectType == null) {
+      throw new IllegalArgumentException(String.format("effect type: %s is not valid", name));
+    }
+    return effectType;
   }
 
   @Override
-  public List<PotionEffectType> getEffectTypes(PotionType type) {
-    List<PotionEffectType> types = new ArrayList<>();
-    types.add(type.getEffectType());
-    return types;
+  public List<PotionEffect> getEffects(PotionType type) {
+    List<PotionEffect> potionEffects = new ArrayList<>();
+    PotionEffect effect = new PotionEffect(type.getEffectType(), -1, 0, false, false);
+    potionEffects.add(effect);
+    return potionEffects;
   }
 
   @Override

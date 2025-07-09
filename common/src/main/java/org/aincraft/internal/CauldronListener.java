@@ -1,5 +1,7 @@
 package org.aincraft.internal;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -7,6 +9,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import org.aincraft.CauldronIngredient;
 import org.aincraft.IPotionResult;
+import org.aincraft.providers.ICauldronEffectProvider;
 import org.aincraft.providers.ICauldronProvider;
 import org.aincraft.providers.IMaterialProvider;
 import org.aincraft.providers.IVersionProviders;
@@ -31,7 +34,6 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
-import org.jetbrains.annotations.Nullable;
 
 final class CauldronListener implements Listener {
 
@@ -60,6 +62,7 @@ final class CauldronListener implements Listener {
     Internal internal = brew.getInternal();
     final IVersionProviders versionProviders = internal.getVersionProviders();
     final ICauldronProvider cauldronProvider = versionProviders.getCauldronProvider();
+    final ICauldronEffectProvider effectProvider = versionProviders.getEffectProvider();
     if (!cauldronProvider.isWaterCauldron(block)) {
       return;
     }
@@ -78,13 +81,13 @@ final class CauldronListener implements Listener {
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
-    if (cauldron == null || cauldron.isCompleted()) {
+    if (cauldron.isCompleted()) {
       return;
     }
     Player player = event.getPlayer();
     event.setCancelled(true);
     if (STIRRER.contains(itemMaterial)) {
-      cauldronProvider.playStirEffect(block, player);
+      effectProvider.playStirEffect(block, player);
       cauldron.setCompleted(true);
       cauldronDao.updateCauldron(cauldron);
     } else {
@@ -97,7 +100,7 @@ final class CauldronListener implements Listener {
       if (player.getGameMode() != GameMode.CREATIVE) {
         item.setAmount(item.getAmount() - added);
       }
-      cauldronProvider.playAddIngredientEffect(block, player);
+      effectProvider.playAddIngredientEffect(block, player);
       cauldron.addIngredient(new CauldronIngredient(materialKey, 1));
       cauldronDao.updateCauldron(cauldron);
     }
@@ -145,12 +148,19 @@ final class CauldronListener implements Listener {
       if (cauldron.isCompleted()) {
         Trie potionTrie = brew.getInternal().getPotionTrie();
         List<CauldronIngredient> ingredients = cauldron.getIngredients();
-        IPotionResult result = potionTrie.search(ingredients);
+        IPotionResult result = potionTrie.search(player, ingredients);
         if (result != null) {
           ItemStack stack = result.getStack();
           if (stack != null) {
-            inventory.addItem(stack);
+            HashMap<Integer, ItemStack> cannotFit = inventory.addItem(stack);
+//            if (!cannotFit.isEmpty()) {
+//              cannotFit.values().forEach(s -> {
+//                location.getWorld().dropItemNaturally(player.getLocation(), s);
+//              });
+//            }
+
           }
+
         }
       }
     } catch (ExecutionException e) {
@@ -192,5 +202,4 @@ final class CauldronListener implements Listener {
   private static boolean isRightClick(Action action) {
     return action == Action.RIGHT_CLICK_AIR || action == Action.RIGHT_CLICK_BLOCK;
   }
-
 }

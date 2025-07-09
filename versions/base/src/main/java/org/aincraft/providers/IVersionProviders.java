@@ -7,4 +7,7 @@ public interface IVersionProviders {
   IMaterialProvider getMaterialProvider();
 
   ICauldronProvider getCauldronProvider();
+
+  ICauldronEffectProvider getEffectProvider();
+
 }
