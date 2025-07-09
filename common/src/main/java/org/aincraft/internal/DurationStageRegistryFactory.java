@@ -2,13 +2,17 @@ package org.aincraft.internal;
 
 import com.google.common.base.Preconditions;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 import org.aincraft.IConfiguration.IYamlConfiguration;
 import org.aincraft.IDurationStage;
 import org.aincraft.IFactory;
 import org.aincraft.container.IDurationStageRegistry;
 import org.bukkit.NamespacedKey;
+import org.bukkit.block.Biome;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
@@ -70,12 +74,12 @@ final class DurationStageRegistryFactory implements IFactory<IDurationStageRegis
 
     @Override
     public boolean hasNext() {
-      return index + 1 <= stages.size();
+      return index + 1 < stages.size();
     }
 
     @Override
     public boolean hasPrevious() {
-      return index - 1 >= 0;
+      return index - 1 > 0;
     }
 
     @Override

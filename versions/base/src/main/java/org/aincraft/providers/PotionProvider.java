@@ -53,8 +53,8 @@ public class PotionProvider implements IPotionProvider {
   }
 
   @Override
-  public List<PotionEffectType> getEffectTypes(PotionType type) {
-    return type.getPotionEffects().stream().map(PotionEffect::getType).collect(Collectors.toList());
+  public List<PotionEffect> getEffects(PotionType type) {
+    return type.getPotionEffects();
   }
 
   @Override

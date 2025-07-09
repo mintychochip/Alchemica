@@ -3,6 +3,7 @@ import io.papermc.hangarpublishplugin.model.Platforms
 plugins {
     id("io.papermc.hangar-publish-plugin") version "0.1.3"
     id("com.github.johnrengelman.shadow") version "8.1.1"
+    id("xyz.jpenilla.run-paper") version "2.3.1"
 }
 dependencies {
     implementation(project(":api"))
@@ -10,6 +11,9 @@ dependencies {
         exclude(group = "org.spigotmc", module = "spigot-api")
     }
     implementation(project(":versions:v1_12_R1")) {
+        exclude(group = "org.spigotmc", module = "spigot-api")
+    }
+    implementation(project(":versions:v1_13_R0")) {
         exclude(group = "org.spigotmc", module = "spigot-api")
     }
     compileOnly("org.spigotmc:spigot-api:1.12.2-R0.1-SNAPSHOT") // or lowest supported
@@ -37,6 +41,17 @@ tasks {
         }
     }
 
+    named<xyz.jpenilla.runpaper.task.RunServer>("runServer") {
+        val toolchains = project.extensions.getByType<JavaToolchainService>()
+        javaLauncher.set(
+            toolchains.launcherFor {
+                languageVersion.set(JavaLanguageVersion.of(21))
+            }
+        )
+        minecraftVersion("1.21.7")
+    }
+
+//
 //    named<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar>("shadowJar") {
 //        archiveFileName.set("${project.name}-${project.version}.jar")
 //        destinationDirectory.set(file("C:\\Users\\justi\\Desktop\\paper\\plugins"))
@@ -50,13 +65,17 @@ hangarPublish {
         id.set("Alchemica")
         apiKey.set(System.getenv("HANGAR_API_TOKEN"))
         platforms {
-           /* register(Platforms.PAPER) {
+            paper {
                 jar.set(tasks.shadowJar.flatMap { it.archiveFile })
-                val versions: List<String> = (property("paperVersion") as String)
+                val versions: List<String> = (rootProject.property("paperVersions") as String)
                     .split(",")
                     .map { it.trim() }
                 platformVersions.set(versions)
-            }*/
+                dependencies {
+
+                }
+            }
+
         }
     }
 }

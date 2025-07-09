@@ -6,485 +6,411 @@ duration-stages:
   long: 9600            # 8 minutes (redstone-extended)
   very_long: 12000
   very: 15000
+root: water-potion
 nodes:
   water-potion:
     type: base
     item: air
     potion-type: water
-    children:
-      - awkward-potion
-      - thick-potion
-      - weakness-potion
-      - lesser-extension
-      - extension
-      - greater-extension
-      - lesser-amplify
-      - amplify
-      - splash-potion
 
   weakness-potion:
     type: base
     item: fermented_spider_eye
     potion-type: weakness
-    children:
-      - fire-resistance-effect
-      - healing-effect
-      - poison-effect
-      - regeneration-effect
-      - speed-effect
-      - strength-effect
-      - night-vision-effect
-      - lesser-extension
-      - extension
-      - greater-extension
-      - lesser-amplify
-      - amplify
-      - splash-potion
-  haste-potion:
-    type: base
-    item: cake
-    potion-type: haste
+    parents:
+      - water-potion
 
   awkward-potion:
     type: base
     item: nether_wart
     potion-type: awkward
-    children:
-      - fire-resistance-potion
-      - healing-potion
-      - poison-potion
-      - regeneration-potion
-      - speed-potion
-      - strength-potion
-      - night-vision-potion
-      - weakness-potion
-      - lesser-extension
-      - extension
-      - greater-extension
-      - lesser-amplify
-      - amplify
-      - splash-potion
+    parents:
+      - water-potion
 
   thick-potion:
     type: base
     item: glowstone_dust
     potion-type: thick
-    children:
-      - weakness-potion
-      - lesser-extension
-      - extension
-      - greater-extension
-      - lesser-amplify
-      - amplify
-      - splash-potion
+    parents:
+      - water-potion
 
   night-vision-potion:
     type: base
     item: golden_carrot
     potion-type: night_vision
-    children:
-      - fire-resistance-effect
-      - healing-effect
-      - poison-effect
-      - regeneration-effect
-      - speed-effect
-      - strength-effect
-      - night-vision-effect
-      - invisibility-potion
-      - lesser-extension
-      - extension
-      - greater-extension
-      - lesser-amplify
-      - amplify
-      - splash-potion
+    parents:
+      - awkward-potion
 
-
-  invisibility-potion:
+  f-invisibility-potion:
     type: base
     item: fermented_spider_eye
     potion-type: invisibility
-    children:
-      - fire-resistance-effect
-      - healing-effect
-      - poison-effect
-      - regeneration-effect
-      - speed-effect
-      - strength-effect
-      - night-vision-effect
-      - lesser-extension
-      - extension
-      - greater-extension
-      - lesser-amplify
-      - amplify
-      - splash-potion
+    parents:
+      - night-vision-potion
 
   speed-potion:
     type: base
     item: sugar
     potion-type: swiftness
-    children:
-      - fire-resistance-effect
-      - healing-effect
-      - poison-effect
-      - regeneration-effect
-      - slowness-potion
-      - speed-effect
-      - strength-effect
-      - night-vision-effect
-      - lesser-extension
-      - extension
-      - greater-extension
-      - lesser-amplify
-      - amplify
-      - splash-potion
+    parents:
+      - awkward-potion
 
-  slowness-potion:
+  f-slowness-potion:
     type: base
     item: fermented_spider_eye
     potion-type: slowness
-    children:
-      - fire-resistance-effect
-      - healing-effect
-      - poison-effect
-      - regeneration-effect
-      - speed-effect
-      - strength-effect
-      - night-vision-effect
-      - lesser-extension
-      - extension
-      - greater-extension
-      - lesser-amplify
-      - amplify
-      - splash-potion
+    parents:
+      - speed-potion
+      - fire-resistance-potion
 
   strength-potion:
     type: base
     item: blaze_powder
     potion-type: strength
-    children:
-      - fire-resistance-effect
-      - healing-effect
-      - poison-effect
-      - regeneration-effect
-      - speed-effect
-      - strength-effect
-      - night-vision-effect
-      - weakness-potion
-      - lesser-extension
-      - extension
-      - greater-extension
-      - lesser-amplify
-      - amplify
-      - splash-potion
+    parents:
+      - awkward-potion
 
   fire-resistance-potion:
     type: base
     item: magma_cream
     potion-type: fire_resistance
-    children:
-      - fire-resistance-effect
-      - healing-effect
-      - poison-effect
-      - regeneration-effect
-      - slowness-potion
-      - speed-effect
-      - strength-effect
-      - night-vision-effect
-      - lesser-extension
-      - extension
-      - greater-extension
-      - lesser-amplify
-      - amplify
-      - splash-potion
+    parents:
+      - awkward-potion
 
   poison-potion:
     type: base
     item: spider_eye
     potion-type: poison
-    children:
-      - fire-resistance-effect
-      - healing-effect
-      - harming-potion
-      - poison-effect
-      - regeneration-effect
-      - speed-effect
-      - strength-effect
-      - night-vision-effect
-      - lesser-extension
-      - extension
-      - greater-extension
-      - lesser-amplify
-      - amplify
-      - splash-potion
+    parents:
+      - awkward-potion
 
   healing-potion:
     type: base
     item: glistering_melon_slice
     potion-type: healing
-    children:
-      - fire-resistance-effect
-      - healing-effect
-      - poison-effect
-      - regeneration-effect
-      - speed-effect
-      - strength-effect
-      - night-vision-effect
-      - lesser-extension
-      - extension
-      - greater-extension
-      - lesser-amplify
-      - amplify
-      - splash-potion
+    parents:
+      - awkward-potion
 
   regeneration-potion:
     type: base
     item: ghast_tear
     potion-type: regeneration
-    children:
-      - fire-resistance-effect
-      - healing-effect
-      - poison-effect
-      - regeneration-effect
-      - speed-effect
-      - strength-effect
-      - night-vision-effect
-      - lesser-extension
-      - extension
-      - greater-extension
-      - lesser-amplify
-      - amplify
-      - splash-potion
+    parents:
+      - awkward-potion
 
-  harming-potion:
+  f-harming-potion:
     type: base
     item: fermented_spider_eye
     potion-type: harming
-    children:
-      - fire-resistance-effect
-      - healing-effect
-      - poison-effect
-      - regeneration-effect
-      - speed-effect
-      - strength-effect
-      - night-vision-effect
-      - lesser-extension
-      - extension
-      - greater-extension
-      - lesser-amplify
-      - amplify
-      - splash-potion
+    parents:
+      - poison-potion
+
+  water-breathing-potion:
+    type: base
+    item: pufferfish
+    potion-type: water_breathing
+    parents:
+      - awkward-potion
+
+  slow-falling-potion:
+    type: base
+    item: phantom_membrane
+    potion-type: slow_falling
+    parents:
+      - awkward-potion
+
+  leaping-potion:
+    type: base
+    item: rabbit_foot
+    potion-type: leaping
+    parents:
+      - awkward-potion
+
+  turtle-master-potion:
+    type: base
+    item: turtle_helmet
+    potion-type: turtle_master
+    parents:
+      - awkward-potion
+
+  oozing-potion:
+    type: base
+    item: slime_block
+    potion-type: oozing
+    parents:
+      - awkward-potion
+
+  infestation-potion:
+    type: base
+    item: stone
+    potion-type: infested
+    parents:
+      - awkward-potion
+
+  weaving-potion:
+    type: base
+    item: cobweb
+    potion-type: weaving
+    parents:
+      - awkward-potion
+
+  wind-charged-potion:
+    type: base
+    item: breeze_rod
+    potion-type: wind_charged
+    parents:
+      - awkward-potion
 
   speed-effect:
     type: effect
     item: sugar
     effect: speed
-    children:
-      - fire-resistance-effect
-      - healing-effect
-      - poison-effect
-      - regeneration-effect
-      - speed-effect
-      - strength-effect
-      - night-vision-effect
-      - lesser-extension
-      - extension
-      - greater-extension
-      - lesser-amplify
-      - amplify
-      - splash-potion
+    parents:
+      - effect[.*]
+      - base[^(?!f-).*]
+
+  haste-effect:
+    type: effect
+    item: cake
+    effect: haste
+    parents:
+      - effect[.*]
+      - base[^(?!f-).*]
 
   strength-effect:
     type: effect
     item: blaze_powder
     effect: strength
-    children:
-      - fire-resistance-effect
-      - healing-effect
-      - poison-effect
-      - regeneration-effect
-      - speed-effect
-      - strength-effect
-      - night-vision-effect
-      - lesser-extension
-      - extension
-      - greater-extension
-      - lesser-amplify
-      - amplify
-      - splash-potion
-
-  fire-resistance-effect:
-    type: effect
-    item: magma_cream
-    effect: fire_resistance
-    children:
-      - fire-resistance-effect
-      - healing-effect
-      - poison-effect
-      - regeneration-effect
-      - speed-effect
-      - strength-effect
-      - night-vision-effect
-      - lesser-extension
-      - extension
-      - greater-extension
-      - lesser-amplify
-      - amplify
-      - splash-potion
-
-  poison-effect:
-    type: effect
-    item: spider_eye
-    effect: poison
-    children:
-      - fire-resistance-effect
-      - healing-effect
-      - poison-effect
-      - regeneration-effect
-      - speed-effect
-      - strength-effect
-      - night-vision-effect
-      - lesser-extension
-      - extension
-      - greater-extension
-      - lesser-amplify
-      - amplify
-      - splash-potion
+    parents:
+      - effect[.*]
+      - base[^(?!f-).*]
 
   healing-effect:
     type: effect
     item: glistering_melon_slice
     effect: instant_health
-    children:
-      - fire-resistance-effect
-      - healing-effect
-      - poison-effect
-      - regeneration-effect
-      - speed-effect
-      - strength-effect
-      - night-vision-effect
-      - lesser-extension
-      - extension
-      - greater-extension
-      - lesser-amplify
-      - amplify
-      - splash-potion
+    parents:
+      - effect[.*]
+      - base[^(?!f-).*]
+
+  jump-boost-effect:
+    type: effect
+    item: rabbit_foot
+    effect: jump_boost
+    parents:
+      - effect[.*]
+      - base[^(?!f-).*]
+
+  nausea-effect:
+    type: effect
+    item: poisonous_potato
+    effect: nausea
+    parents:
+      - effect[.*]
+      - base[^(?!f-).*]
 
   regeneration-effect:
     type: effect
     item: ghast_tear
     effect: regeneration
-    children:
-      - fire-resistance-effect
-      - healing-effect
-      - poison-effect
-      - regeneration-effect
-      - speed-effect
-      - strength-effect
-      - night-vision-effect
-      - lesser-extension
-      - extension
-      - greater-extension
-      - lesser-amplify
-      - amplify
-      - splash-potion
+    parents:
+      - effect[.*]
+      - base[^(?!f-).*]
+
+  resistance-effect:
+    type: effect
+    item: iron_block
+    effect: resistance
+    parents:
+      - effect[.*]
+      - base[^(?!f-).*]
+  fire-resistance-effect:
+    type: effect
+    item: magma_cream
+    effect: fire_resistance
+    parents:
+      - effect[.*]
+      - base[^(?!f-).*]
+
+  water-breathing-effect:
+    type: effect
+    item: pufferfish
+    effect: water_breathing
+    parents:
+      - effect[.*]
+      - base[^(?!f-).*]
+
+  blindness-effect:
+    type: effect
+    item: ink_sac
+    effect: blindness
+    parents:
+      - effect[.*]
+      - base[^(?!f-).*]
 
   night-vision-effect:
     type: effect
     item: golden_carrot
     effect: night_vision
-    children:
-      - fire-resistance-effect
-      - healing-effect
-      - poison-effect
-      - regeneration-effect
-      - speed-effect
-      - strength-effect
-      - night-vision-effect
-      - lesser-extension
-      - extension
-      - greater-extension
-      - lesser-amplify
-      - amplify
-      - splash-potion
+    parents:
+      - effect[.*]
+      - base[^(?!f-).*]
+
+  hunger-effect:
+    type: effect
+    item: rotten_flesh
+    effect: hunger
+    parents:
+      - effect[.*]
+      - base[^(?!f-).*]
+
+  poison-effect:
+    type: effect
+    item: spider_eye
+    effect: poison
+    parents:
+      - effect[.*]
+      - base[^(?!f-).*]
+
+  wither-effect:
+    type: effect
+    item: wither_rose
+    effect: wither
+    parents:
+      - effect[.*]
+      - base[^(?!f-).*]
+
+  saturation-effect:
+    type: effect
+    item: steak
+    effect: saturation
+    parents:
+      - effect[.*]
+      - base[^(?!f-).*]
+
+  glowing-effect:
+    type: effect
+    item: glow_ink_sac
+    effect: glowing
+    parents:
+      - effect[.*]
+      - base[^(?!f-).*]
+
+  luck-effect:
+    type: effect
+    item: oak_leaves
+    effect: luck
+    parents:
+      - effect[.*]
+      - base[^(?!f-).*]
+
+  slow-falling-effect:
+    type: effect
+    item: phantom_membrane
+    effect: water_breathing
+    parents:
+      - effect[.*]
+      - base[^(?!f-).*]
+
+  wind-charged-effect:
+    type: effect
+    item: breeze_rod
+    effect: wind_charged
+    parents:
+      - effect[.*]
+      - base[^(?!f-).*]
+
+  weaving-effect:
+    type: effect
+    item: cobweb
+    effect: weaving
+    parents:
+      - effect[.*]
+      - base[^(?!f-).*]
+
+  oozing-effect:
+    type: effect
+    item: slime_block
+    effect: oozing
+    parents:
+      - effect[.*]
+      - base[^(?!f-).*]
+
+  infestation-effect:
+    type: effect
+    item: stone
+    effect: infested
+    parents:
+      - effect[.*]
+      - base[^(?!f-).*]
 
   lesser-extension:
     type: modifier
     item: redstone
     modifiers:
       duration: 1
-    children:
-      - lesser-extension
-      - extension
-      - greater-extension
-      - lesser-amplify
-      - amplify
-      - splash-potion
+    parents:
+      - effect[.*]
+      - base[^(?!f-).*]
+      - modifier[^(?!splash|lingering).*]
 
   extension:
     type: modifier
     item: redstone_ore
     modifiers:
       duration: 2
-    children:
-      - lesser-extension
-      - extension
-      - greater-extension
-      - lesser-amplify
-      - amplify
-      - splash-potion
+    parents:
+      - effect[.*]
+      - base[^(?!f-).*]
+      - modifier[^(?!splash|lingering).*]
 
   greater-extension:
     type: modifier
     item: redstone_block
     modifiers:
       duration: 3
-    children:
-      - lesser-extension
-      - extension
-      - greater-extension
-      - lesser-amplify
-      - amplify
-      - splash-potion
+    parents:
+      - effect[.*]
+      - base[^(?!f-).*]
+      - modifier[^(?!splash|lingering).*]
 
   lesser-amplify:
     type: modifier
     item: glowstone_dust
     modifiers:
       amplifier: 1
-    children:
-      - lesser-extension
-      - extension
-      - greater-extension
-      - lesser-amplify
-      - amplify
-      - splash-potion
+    parents:
+      - effect[.*]
+      - base[^(?!f-).*]
+      - modifier[^(?!splash|lingering).*]
 
   amplify:
     type: modifier
     item: glowstone
     modifiers:
       amplifier: 2
-    children:
-      - lesser-extension
-      - extension
-      - greater-extension
-      - lesser-amplify
-      - amplify
-      - splash-potion
+    parents:
+      - effect[.*]
+      - base[^(?!f-).*]
+      - modifier[^(?!splash|lingering).*]
 
   splash-potion:
     type: modifier
     item: gunpowder
     modifiers:
       potion_material: splash_potion
-    children:
-      - lingering-potion
+    parents:
+      - effect[.*]
+      - base[^(?!f-).*]
+      - modifier[.*]
 
   lingering-potion:
     type: modifier
-    item: dragons_breath
+    item: dragon_breath
     modifiers:
       potion_material: lingering_potion
+    parents:
+      - splash-potion
 
 effect_durations:
   absorption: medium
@@ -526,5 +452,4 @@ effect_durations:
   weaving: short
   wind_charged: long
   wither: short
-
 

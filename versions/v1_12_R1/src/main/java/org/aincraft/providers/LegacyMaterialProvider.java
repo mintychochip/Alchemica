@@ -3,6 +3,7 @@ package org.aincraft.providers;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import org.aincraft.IConfiguration.IYamlConfiguration;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.configuration.ConfigurationSection;
@@ -25,8 +26,7 @@ public final class LegacyMaterialProvider implements IMaterialProvider {
     MaterialData materialData = stack.getData();
     Material material = stack.getType();
     LegacyMaterialAdapter legacyAdapter = new LegacyMaterialAdapter(material,
-        materialData.getData());
-    NamespacedKey key = inverse.get(legacyAdapter);
+        materialData != null ? materialData.getData() : 0);
     return inverse.get(legacyAdapter);
   }
 

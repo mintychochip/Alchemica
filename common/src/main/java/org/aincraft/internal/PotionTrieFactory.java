@@ -7,6 +7,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 import org.aincraft.CauldronIngredient;
 import org.aincraft.IConfiguration.IYamlConfiguration;
 import org.aincraft.internal.PotionResult.PotionResultContext;
@@ -15,9 +16,13 @@ import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.permissions.Permission;
+import org.bukkit.permissions.PermissionDefault;
+import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.potion.PotionType;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 final class PotionTrieFactory {
 
@@ -25,6 +30,7 @@ final class PotionTrieFactory {
   private final IYamlConfiguration configuration;
   private final IPotionProvider potionProvider;
   private final Map<String, Integer> inDegrees = new HashMap<>();
+  private final Map<String, Node> nodeMap = new HashMap<>();
 
   PotionTrieFactory(PotionEffectMetaFactory metaFactory, IYamlConfiguration configuration,
       IPotionProvider potionProvider) {
@@ -35,7 +41,6 @@ final class PotionTrieFactory {
 
   Trie create() {
     Preconditions.checkArgument(configuration.contains("nodes"));
-    Map<String, Node> nodeMap = new HashMap<>();
     ConfigurationSection nodeConfigurationSection = configuration.getConfigurationSection("nodes");
     for (String nodeKey : nodeConfigurationSection.getKeys(false)) {
       ConfigurationSection nodeSection = nodeConfigurationSection.getConfigurationSection(
@@ -47,56 +52,108 @@ final class PotionTrieFactory {
       }
       try {
         Node node = createNode(nodeSection);
+        Bukkit.getLogger().info("created node: " + nodeKey);
         nodeMap.put(nodeKey, node);
-        inDegrees.put(nodeKey, 0);
       } catch (IllegalArgumentException ex) {
-        Bukkit.getLogger().info(ex.getMessage());
+        Bukkit.getLogger().info(String.format("ignoring node: %s", nodeKey));
       }
     }
 
-    for (String nodeKey : nodeConfigurationSection.getKeys(false)) {
-      ConfigurationSection nodeSection = nodeConfigurationSection.getConfigurationSection(nodeKey);
+    for (String childKey : nodeConfigurationSection.getKeys(false)) {
+      ConfigurationSection nodeSection = nodeConfigurationSection.getConfigurationSection(childKey);
       if (nodeSection == null) {
         Bukkit.getLogger()
-            .info(String.format("node section for: %s was null, skipping the section", nodeKey));
+            .info(String.format("node section for: %s was null, skipping the section", childKey));
         continue;
       }
-      if (!nodeSection.contains("children") || !nodeMap.containsKey(nodeKey)) {
+      if (!nodeSection.contains("parents") || !nodeMap.containsKey(childKey)) {
         continue;
       }
-      Node parentNode = nodeMap.get(nodeKey);
-      for (String childKey : nodeSection.getStringList("children")) {
-        if (!nodeMap.containsKey(childKey)) {
-          continue;
+      Node childNode = nodeMap.get(childKey);
+      for (String parentKey : nodeSection.getStringList("parents")) {
+        List<Node> parentNodeList = getParentNodeList(parentKey);
+        if (parentNodeList != null) {
+          for (Node node : parentNodeList) {
+            Bukkit.getLogger().info(node.toString());
+            node.addChild(childNode);
+          }
         }
-        Node node = nodeMap.get(childKey);
-        parentNode.addChild(node);
+        if (nodeMap.containsKey(parentKey)) {
+          Bukkit.getLogger().info(parentKey + "->" + childKey);
+          Node parentNode = nodeMap.get(parentKey);
+          parentNode.addChild(childNode);
+        }
         inDegrees.compute(childKey, (k, v) -> v == null ? 1 : v + 1);
       }
     }
-    Node root = null;
-    for (Entry<String, Integer> entry : inDegrees.entrySet()) {
-      Node node = nodeMap.get(entry.getKey());
-      if (entry.getValue() == 0 && !node.getChildren().isEmpty()) {
-        root = node;
-      }
+    try {
+      return new Trie(getRoot(nodeMap));
+    } catch (IllegalStateException | IllegalArgumentException ex) {
+      throw new RuntimeException(ex);
     }
-    return new Trie(root);
   }
 
-  private Node createNode(ConfigurationSection nodeSection)
+  @Nullable
+  private List<Node> getParentNodeList(String nodeKey) throws IllegalArgumentException {
+    for (NodeType type : NodeType.values()) {
+      String nodeTypeString = type.toString().toLowerCase(Locale.ENGLISH);
+      if (nodeKey.startsWith(nodeTypeString + "[") && nodeKey.endsWith("]")) {
+        int first = nodeKey.lastIndexOf(nodeTypeString + "[") + 1;
+        int last = nodeKey.indexOf("]") - 1;
+        if (first > last) {
+          throw new IllegalArgumentException("invalid node key");
+        }
+        String regexPart = nodeKey.substring(nodeTypeString.length() + 1, nodeKey.length() - 1);
+        return nodeMap.entrySet().stream()
+            .filter(entry ->
+                entry.getKey().matches(regexPart) && entry.getValue().getType() == type)
+            .map(Entry::getValue)
+            .collect(Collectors.toList());
+      }
+    }
+    return null;
+  }
+
+  private Node createNode(@NotNull ConfigurationSection nodeSection)
       throws IllegalArgumentException {
     Preconditions.checkArgument(nodeSection.contains("type"));
     Preconditions.checkArgument(nodeSection.contains("item"));
     String nodeTypeString = nodeSection.getString("type");
     NodeType nodeType = NodeType.valueOf(nodeTypeString.toUpperCase(Locale.ENGLISH));
     String itemString = nodeSection.getString("item");
+    Consumer<PotionResultContext> consumer = createConsumer(nodeSection, nodeType);
     CauldronIngredient ingredient = new CauldronIngredient(Brew.createKey(itemString),
         nodeSection.getInt("amount", 1));
-    Consumer<PotionResultContext> consumer = createConsumer(nodeSection, nodeType);
+    @NotNull String permissionString =
+        "alchemica." + nodeSection.getName().toLowerCase(Locale.ENGLISH);
+    Bukkit.getPluginManager().addPermission(new Permission(permissionString, PermissionDefault.OP));
     return new Node(nodeType,
         ingredient,
-        consumer);
+        consumer, permissionString);
+  }
+
+  @NotNull
+  private Node getRoot(Map<String, Node> nodeMap)
+      throws IllegalArgumentException, IllegalStateException {
+    if (configuration.contains("root")) {
+      String rootString = configuration.getString("root");
+      if (!nodeMap.containsKey(rootString)) {
+        throw new IllegalArgumentException(
+            String.format("forced root: %s is not in map", rootString));
+      }
+      Bukkit.getLogger().info("forced root: " + rootString);
+      return nodeMap.get(rootString);
+    }
+    Bukkit.getLogger().info("root node was not specified");
+    for (Entry<String, Integer> entry : inDegrees.entrySet()) {
+      Node node = nodeMap.get(entry.getKey());
+      if (entry.getValue() == 0 && !node.getChildren().isEmpty()) {
+        Bukkit.getLogger().info("implied root: " + entry.getKey());
+        return node;
+      }
+    }
+    throw new IllegalStateException(
+        "unable to locate a root node, at least one node must have no parents and more than 1 child");
   }
 
   @NotNull
@@ -119,14 +176,14 @@ final class PotionTrieFactory {
                   potionType);
               break;
             default:
+              NamespacedKey potionKey = potionProvider.getKey(potionType);
               builder.potionTypeConsumer = meta -> {
-                List<PotionEffectType> effectTypes = potionProvider.getEffectTypes(potionType);
-                for (PotionEffectType effectType : effectTypes) {
-                  builder.potionMetaMap.put(effectType, metaFactory.create(effectType));
+                List<PotionEffect> effects = potionProvider.getEffects(potionType);
+                for (PotionEffect effect : effects) {
+                  builder.potionMetaMap.put(effect.getType(), metaFactory.create(effect));
                 }
-                NamespacedKey potionKey = potionProvider.getKey(potionType);
-                potionProvider.setDisplayName(meta, createPotionName(potionKey));
               };
+              builder.potionNameBuilder.withBase(createPotionName(potionKey));
               break;
           }
         };
@@ -171,23 +228,30 @@ final class PotionTrieFactory {
                     "material %s: is invalid, ensure the material provided has PotionMeta when turned into an ItemStack.",
                     materialString));
               }
-
               consumer = consumer.andThen(
-                  context -> context.potionMaterialSupplier = () -> material);
+                  context -> {
+                    context.potionMaterial = material;
+                    context.potionNameBuilder.withPrefix(
+                        material == Material.SPLASH_POTION ? "Splash" : "Lingering");
+                  });
           }
         }
     }
     return consumer;
   }
 
-  private static String createPotionName(NamespacedKey potionKey) {
+  private static String createPotionName(@NotNull NamespacedKey potionKey) {
     String name = potionKey.getKey();
     String[] splitName = name.split("_");
     StringBuilder potionNameBuilder = new StringBuilder("Potion of ");
+    if ("turtle_master".equals(name)) {
+      potionNameBuilder.append("the ");
+    }
     for (String fragment : splitName) {
       potionNameBuilder.append(Character.toUpperCase(fragment.charAt(0)))
           .append(fragment.substring(1)).append(' ');
     }
-    return potionNameBuilder.toString();
+    String potionName = potionNameBuilder.toString();
+    return potionName.substring(0, potionName.length() - 1);
   }
 }

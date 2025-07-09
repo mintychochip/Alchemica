@@ -54,7 +54,7 @@ final class CauldronDao {
   }
 
   public Cauldron getCauldronIfExists(@NotNull Location location) throws ExecutionException {
-//    Preconditions.checkState(!database.isClosed(), "db is closed");
+    Preconditions.checkState(!database.isClosed(), "db is closed");
     return locationCache.get(LocationKey.create(location), () -> {
       IExecutor executor = database.getExecutor();
       World world = location.getWorld();

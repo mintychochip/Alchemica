@@ -38,4 +38,4 @@ legacy-mapping:
   silverfish_spawn_egg: { material: monster_egg }
   string: { material: string }
   slime_ball: { material: slime_ball }
-  dragons_breath: { material: dragons_breath }
+  dragon_breath: { material: dragons_breath }
