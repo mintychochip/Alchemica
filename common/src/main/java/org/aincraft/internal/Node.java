@@ -4,11 +4,9 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Consumer;
 import org.aincraft.CauldronIngredient;
-import org.aincraft.internal.PotionResult.PotionResultContext;
-import org.bukkit.entity.Player;
+import org.aincraft.internal.PotionResult.PotionContext;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 @ApiStatus.Internal
 final class Node {
@@ -23,13 +21,13 @@ final class Node {
   private final CauldronIngredient ingredient;
 
   @NotNull
-  private final Consumer<PotionResultContext> consumer;
+  private final Consumer<PotionContext> consumer;
 
   @NotNull
   private final String permission;
 
   Node(@NotNull NodeType nodeType, @NotNull CauldronIngredient ingredient,
-      @NotNull Consumer<PotionResultContext> consumer, @NotNull String permission) {
+      @NotNull Consumer<PotionContext> consumer, @NotNull String permission) {
     this.nodeType = nodeType;
     this.ingredient = ingredient;
     this.consumer = consumer;
@@ -37,7 +35,7 @@ final class Node {
   }
 
   @NotNull
-  Consumer<PotionResultContext> getConsumer() {
+  Consumer<PotionContext> getConsumer() {
     return consumer;
   }
 

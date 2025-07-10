@@ -12,8 +12,12 @@ abstract class AbstractCauldronEffectProvider implements ICauldronEffectProvider
 
   protected abstract Sound getAddIngredientSound();
 
-  protected Sound getStirSound() {
+  protected Sound getSuccessStirSound() {
     return Sound.BLOCK_BREWING_STAND_BREW;
+  }
+
+  protected Sound getFailureStirSound() {
+    return Sound.ENTITY_VILLAGER_NO;
   }
 
   @Override
@@ -26,7 +30,8 @@ abstract class AbstractCauldronEffectProvider implements ICauldronEffectProvider
   }
 
   @Override
-  public void playStirEffect(Block block, Player player) {
-    player.playSound(player.getLocation(), getStirSound(), 1.0f, 1.0f);
+  public void playStirEffect(Block block, Player player, boolean success) {
+    player.playSound(player.getLocation(), success ? getSuccessStirSound() : getFailureStirSound(),
+        1.0f, 1.0f);
   }
 }

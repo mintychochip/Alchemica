@@ -7,15 +7,24 @@ import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonToken;
 import com.google.gson.stream.JsonWriter;
 import java.io.IOException;
+import java.util.Set;
+import java.util.UUID;
 import org.aincraft.IConfiguration.IYamlConfiguration;
 import org.aincraft.IPluginConfiguration;
 import org.aincraft.IStorage;
 import org.aincraft.container.IDurationStageRegistry;
+import org.aincraft.container.LocationKey;
+import org.aincraft.dao.CauldronDao;
+import org.aincraft.dao.ICauldron;
+import org.aincraft.dao.IDao;
+import org.aincraft.dao.IPlayerSettings;
+import org.aincraft.dao.PlayerSettingsDao;
 import org.aincraft.providers.IPotionProvider;
 import org.aincraft.providers.IVersionProviders;
 import org.aincraft.providers.VersionProviderFactory;
 import org.aincraft.storage.DatabaseFactory;
 import org.aincraft.storage.Extractor.ResourceExtractor;
+import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.plugin.Plugin;
 
@@ -26,8 +35,10 @@ final class Internal {
   final IPotionDurationMap potionDurationMap;
   final IStorage database;
   final Gson gson;
-  final CauldronDao cauldronDao;
+  final IDao<ICauldron, LocationKey> cauldronDao;
   final IVersionProviders versionProviders;
+  final Set<Material> stirrers;
+  final IDao<IPlayerSettings, UUID> playerSettingsDao;
 
   Internal(
       Trie potionTrie,
@@ -35,7 +46,9 @@ final class Internal {
       IPotionDurationMap potionDurationMap,
       IStorage database,
       Gson gson,
-      CauldronDao cauldronDao, IVersionProviders versionProviders) {
+      IDao<ICauldron, LocationKey> cauldronDao, IVersionProviders versionProviders,
+      Set<Material> stirrers,
+      IDao<IPlayerSettings, UUID> playerSettingsDao) {
     this.potionTrie = potionTrie;
     this.durationRegistry = durationRegistry;
     this.potionDurationMap = potionDurationMap;
@@ -43,14 +56,12 @@ final class Internal {
     this.gson = gson;
     this.cauldronDao = cauldronDao;
     this.versionProviders = versionProviders;
+    this.stirrers = stirrers;
+    this.playerSettingsDao = playerSettingsDao;
   }
 
   public IVersionProviders getVersionProviders() {
     return versionProviders;
-  }
-
-  public CauldronDao getCauldronDao() {
-    return cauldronDao;
   }
 
   public IDurationStageRegistry getDurationRegistry() {
@@ -82,9 +93,6 @@ final class Internal {
     IPotionDurationMap durationMap = new PotionDurationMapFactory(plugin, general,
         durationRegistry, potionProvider).create();
 
-    Trie trie = new PotionTrieFactory(
-        new PotionEffectMetaFactory(durationMap), general, potionProvider).create();
-
     IStorage database = new DatabaseFactory(
         plugin.getLogger(),
         plugin,
@@ -92,13 +100,17 @@ final class Internal {
         new ResourceExtractor()
     ).create();
 
+    IDao<IPlayerSettings, UUID> playerSettingsDao = new PlayerSettingsDao(database);
+
+    Trie trie = new PotionTrieFactory(
+        new PotionEffectMetaFactory(durationMap), general, potionProvider).create();
+
     Gson gson = new GsonBuilder()
         .registerTypeAdapter(NamespacedKey.class, new KeyAdapter())
         .excludeFieldsWithoutExposeAnnotation()
         .create();
-
-    CauldronDao cauldronDao = new CauldronDao(database, gson);
-
+    Set<Material> stirrers = new StirrerSetFactory(general).create();
+    IDao<ICauldron, LocationKey> cauldronDao = new CauldronDao(database, gson);
     return new Internal(
         trie,
         durationRegistry,
@@ -106,7 +118,7 @@ final class Internal {
         database,
         gson,
         cauldronDao,
-        versionProviders
+        versionProviders, stirrers, playerSettingsDao
     );
   }
 

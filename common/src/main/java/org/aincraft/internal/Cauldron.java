@@ -1,14 +1,19 @@
 package org.aincraft.internal;
 
+import com.google.common.collect.ForwardingList;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import org.aincraft.CauldronIngredient;
+import org.aincraft.container.LocationKey;
+import org.aincraft.dao.ICauldron;
 import org.bukkit.Location;
+import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.NotNull;
 
-public final class Cauldron {
+public final class Cauldron implements ICauldron {
 
-  private final UUID id;
+  private final UUID cauldronId;
 
   private final Location location;
 
@@ -17,42 +22,35 @@ public final class Cauldron {
   private int completed;
 
 
-  public Cauldron(UUID id, Location location, List<CauldronIngredient> ingredients, int completed) {
-    this.id = id;
+  public Cauldron(UUID cauldronId, Location location, List<CauldronIngredient> ingredients,
+      int completed) {
+    this.cauldronId = cauldronId;
     this.location = location;
     this.ingredients = ingredients;
     this.completed = completed;
   }
 
-  static Cauldron create(Location location) {
-    UUID id = UUID.randomUUID();
-    return new Cauldron(id, location, new ArrayList<>(), 0);
+  static Cauldron create(UUID id, Location location, List<CauldronIngredient> ingredients, int completed) {
+    return new Cauldron(id,location,new CauldronIngredientList(ingredients),completed);
   }
 
+  static Cauldron create(Location location) {
+    return create(UUID.randomUUID(), location, new ArrayList<>(), 0);
+  }
+
+  @Override
   public Location getLocation() {
     return location;
   }
 
-  public UUID getId() {
-    return id;
-  }
-
-  public List<CauldronIngredient> getIngredients() {
+  @Override
+  public @NotNull List<CauldronIngredient> getIngredients() {
     return ingredients;
   }
 
-  public void addIngredient(CauldronIngredient ingredient) {
-    if (ingredients.isEmpty()) {
-      ingredients.add(ingredient);
-      return;
-    }
-
-    CauldronIngredient lastIngredient = ingredients.get(ingredients.size() - 1);
-    if (lastIngredient.isSimilar(ingredient)) {
-      lastIngredient.updateAmount(amount -> amount + ingredient.getAmount());
-      return;
-    }
-    ingredients.add(ingredient);
+  @Override
+  public UUID getCauldronId() {
+    return cauldronId;
   }
 
   public void setCompleted(boolean completed) {
@@ -61,5 +59,38 @@ public final class Cauldron {
 
   public boolean isCompleted() {
     return completed == 1;
+  }
+
+  @Override
+  public LocationKey getKey() {
+    return new LocationKey(location);
+  }
+
+  @ApiStatus.Internal
+  private static final class CauldronIngredientList extends ForwardingList<CauldronIngredient> {
+
+    private final List<CauldronIngredient> ingredientList;
+
+    private CauldronIngredientList(List<CauldronIngredient> ingredientList) {
+      this.ingredientList = ingredientList;
+    }
+
+    @Override
+    protected List<CauldronIngredient> delegate() {
+      return ingredientList;
+    }
+
+    @Override
+    public boolean add(CauldronIngredient element) {
+      if (ingredientList.isEmpty()) {
+        return ingredientList.add(element);
+      }
+      CauldronIngredient last = get(size() - 1);
+      if (last.isSimilar(element)) {
+        last.setAmount(element.getAmount() + last.getAmount());
+        return true;
+      }
+      return ingredientList.add(element);
+    }
   }
 }

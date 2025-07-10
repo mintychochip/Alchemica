@@ -6,6 +6,8 @@
       <module name="Brew.bridge.test" target="1.8" />
       <module name="Brew.versions.bridge.main" target="1.8" />
       <module name="Brew.versions.bridge.test" target="1.8" />
+      <module name="Brew.versions.v1_17_R0.main" target="1.8" />
+      <module name="Brew.versions.v1_17_R0.test" target="1.8" />
       <module name="Brew.versions.v1_21_R1" target="21" />
       <module name="Brew.versions.v1_21_R1.main" target="21" />
       <module name="Brew.versions.v1_21_R1.test" target="21" />

@@ -1,5 +1,3 @@
-import io.papermc.hangarpublishplugin.model.Platforms
-
 plugins {
     id("io.papermc.hangar-publish-plugin") version "0.1.3"
     id("com.github.johnrengelman.shadow") version "8.1.1"

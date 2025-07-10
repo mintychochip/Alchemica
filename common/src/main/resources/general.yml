@@ -6,6 +6,9 @@ duration-stages:
   long: 9600            # 8 minutes (redstone-extended)
   very_long: 12000
   very: 15000
+stirrers:
+  - blaze_rod
+  - stick
 root: water-potion
 nodes:
   water-potion:
@@ -167,7 +170,8 @@ nodes:
     effect: speed
     parents:
       - effect[.*]
-      - base[^(?!f-).*]
+      - base[^(?!water|awkward|thick|mundane|f-).*$]
+
 
   haste-effect:
     type: effect
@@ -175,7 +179,8 @@ nodes:
     effect: haste
     parents:
       - effect[.*]
-      - base[^(?!f-).*]
+      - base[^(?!water|awkward|thick|mundane|f-).*$]
+
 
   strength-effect:
     type: effect
@@ -183,7 +188,8 @@ nodes:
     effect: strength
     parents:
       - effect[.*]
-      - base[^(?!f-).*]
+      - base[^(?!water|awkward|thick|mundane|f-).*$]
+
 
   healing-effect:
     type: effect
@@ -191,7 +197,8 @@ nodes:
     effect: instant_health
     parents:
       - effect[.*]
-      - base[^(?!f-).*]
+      - base[^(?!water|awkward|thick|mundane|f-).*$]
+
 
   jump-boost-effect:
     type: effect
@@ -199,7 +206,8 @@ nodes:
     effect: jump_boost
     parents:
       - effect[.*]
-      - base[^(?!f-).*]
+      - base[^(?!water|awkward|thick|mundane|f-).*$]
+
 
   nausea-effect:
     type: effect
@@ -207,7 +215,8 @@ nodes:
     effect: nausea
     parents:
       - effect[.*]
-      - base[^(?!f-).*]
+      - base[^(?!water|awkward|thick|mundane|f-).*$]
+
 
   regeneration-effect:
     type: effect
@@ -215,7 +224,8 @@ nodes:
     effect: regeneration
     parents:
       - effect[.*]
-      - base[^(?!f-).*]
+      - base[^(?!water|awkward|thick|mundane|f-).*$]
+
 
   resistance-effect:
     type: effect
@@ -223,14 +233,17 @@ nodes:
     effect: resistance
     parents:
       - effect[.*]
-      - base[^(?!f-).*]
+      - base[^(?!water|awkward|thick|mundane|f-).*$]
+
+
   fire-resistance-effect:
     type: effect
     item: magma_cream
     effect: fire_resistance
     parents:
       - effect[.*]
-      - base[^(?!f-).*]
+      - base[^(?!water|awkward|thick|mundane|f-).*$]
+
 
   water-breathing-effect:
     type: effect
@@ -238,7 +251,8 @@ nodes:
     effect: water_breathing
     parents:
       - effect[.*]
-      - base[^(?!f-).*]
+      - base[^(?!water|awkward|thick|mundane|f-).*$]
+
 
   blindness-effect:
     type: effect
@@ -246,7 +260,8 @@ nodes:
     effect: blindness
     parents:
       - effect[.*]
-      - base[^(?!f-).*]
+      - base[^(?!water|awkward|thick|mundane|f-).*$]
+
 
   night-vision-effect:
     type: effect
@@ -254,7 +269,8 @@ nodes:
     effect: night_vision
     parents:
       - effect[.*]
-      - base[^(?!f-).*]
+      - base[^(?!water|awkward|thick|mundane|f-).*$]
+
 
   hunger-effect:
     type: effect
@@ -262,7 +278,8 @@ nodes:
     effect: hunger
     parents:
       - effect[.*]
-      - base[^(?!f-).*]
+      - base[^(?!water|awkward|thick|mundane|f-).*$]
+
 
   poison-effect:
     type: effect
@@ -270,7 +287,8 @@ nodes:
     effect: poison
     parents:
       - effect[.*]
-      - base[^(?!f-).*]
+      - base[^(?!water|awkward|thick|mundane|f-).*$]
+
 
   wither-effect:
     type: effect
@@ -278,7 +296,8 @@ nodes:
     effect: wither
     parents:
       - effect[.*]
-      - base[^(?!f-).*]
+      - base[^(?!water|awkward|thick|mundane|f-).*$]
+
 
   saturation-effect:
     type: effect
@@ -286,7 +305,8 @@ nodes:
     effect: saturation
     parents:
       - effect[.*]
-      - base[^(?!f-).*]
+      - base[^(?!water|awkward|thick|mundane|f-).*$]
+
 
   glowing-effect:
     type: effect
@@ -294,7 +314,8 @@ nodes:
     effect: glowing
     parents:
       - effect[.*]
-      - base[^(?!f-).*]
+      - base[^(?!water|awkward|thick|mundane|f-).*$]
+
 
   luck-effect:
     type: effect
@@ -302,7 +323,8 @@ nodes:
     effect: luck
     parents:
       - effect[.*]
-      - base[^(?!f-).*]
+      - base[^(?!water|awkward|thick|mundane|f-).*$]
+
 
   slow-falling-effect:
     type: effect
@@ -310,7 +332,8 @@ nodes:
     effect: water_breathing
     parents:
       - effect[.*]
-      - base[^(?!f-).*]
+      - base[^(?!water|awkward|thick|mundane|f-).*$]
+
 
   wind-charged-effect:
     type: effect
@@ -318,7 +341,8 @@ nodes:
     effect: wind_charged
     parents:
       - effect[.*]
-      - base[^(?!f-).*]
+      - base[^(?!water|awkward|thick|mundane|f-).*$]
+
 
   weaving-effect:
     type: effect
@@ -326,7 +350,8 @@ nodes:
     effect: weaving
     parents:
       - effect[.*]
-      - base[^(?!f-).*]
+      - base[^(?!water|awkward|thick|mundane|f-).*$]
+
 
   oozing-effect:
     type: effect
@@ -334,7 +359,8 @@ nodes:
     effect: oozing
     parents:
       - effect[.*]
-      - base[^(?!f-).*]
+      - base[^(?!water|awkward|thick|mundane|f-).*$]
+
 
   infestation-effect:
     type: effect
@@ -342,7 +368,8 @@ nodes:
     effect: infested
     parents:
       - effect[.*]
-      - base[^(?!f-).*]
+      - base[^(?!water|awkward|thick|mundane|f-).*$]
+
 
   lesser-extension:
     type: modifier
@@ -351,7 +378,7 @@ nodes:
       duration: 1
     parents:
       - effect[.*]
-      - base[^(?!f-).*]
+      - base[^(?!water|awkward|thick|mundane|f-).*$]
       - modifier[^(?!splash|lingering).*]
 
   extension:
@@ -361,7 +388,7 @@ nodes:
       duration: 2
     parents:
       - effect[.*]
-      - base[^(?!f-).*]
+      - base[^(?!water|awkward|thick|mundane|f-).*$]
       - modifier[^(?!splash|lingering).*]
 
   greater-extension:
@@ -371,7 +398,7 @@ nodes:
       duration: 3
     parents:
       - effect[.*]
-      - base[^(?!f-).*]
+      - base[^(?!water|awkward|thick|mundane|f-).*$]
       - modifier[^(?!splash|lingering).*]
 
   lesser-amplify:
@@ -381,7 +408,7 @@ nodes:
       amplifier: 1
     parents:
       - effect[.*]
-      - base[^(?!f-).*]
+      - base[^(?!water|awkward|thick|mundane|f-).*$]
       - modifier[^(?!splash|lingering).*]
 
   amplify:
@@ -391,7 +418,7 @@ nodes:
       amplifier: 2
     parents:
       - effect[.*]
-      - base[^(?!f-).*]
+      - base[^(?!water|awkward|thick|mundane|f-).*$]
       - modifier[^(?!splash|lingering).*]
 
   splash-potion:
@@ -401,7 +428,7 @@ nodes:
       potion_material: splash_potion
     parents:
       - effect[.*]
-      - base[^(?!f-).*]
+      - base[.*]
       - modifier[.*]
 
   lingering-potion:

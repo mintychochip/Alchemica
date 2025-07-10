@@ -8,3 +8,10 @@ CREATE TABLE IF NOT EXISTS cauldrons
     ingredients TEXT NOT NULL,
     completed INTEGER NOT NULL
 );
+
+CREATE TABLE IF NOT EXISTS player_settings
+(
+    id TEXT PRIMARY KEY,
+    modifier_count INTEGER NOT NULL,
+    effect_count INTEGER NOT NULL
+);
