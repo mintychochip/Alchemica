@@ -1,7 +1,6 @@
 package org.aincraft.providers;
 
 import java.util.List;
-import java.util.stream.Collectors;
 import org.bukkit.ChatColor;
 import org.bukkit.NamespacedKey;
 import org.bukkit.Registry;

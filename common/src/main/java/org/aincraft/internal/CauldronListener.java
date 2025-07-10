@@ -1,19 +1,18 @@
 package org.aincraft.internal;
 
-import java.util.ArrayList;
+import com.google.common.primitives.UnsignedInteger;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 import org.aincraft.CauldronIngredient;
 import org.aincraft.IPotionResult;
-import org.aincraft.providers.ICauldronEffectProvider;
+import org.aincraft.IPotionResult.Status;
+import org.aincraft.container.LocationKey;
+import org.aincraft.dao.ICauldron;
+import org.aincraft.dao.IDao;
+import org.aincraft.dao.IPlayerSettings;
 import org.aincraft.providers.ICauldronProvider;
-import org.aincraft.providers.IMaterialProvider;
 import org.aincraft.providers.IVersionProviders;
-import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -37,13 +36,6 @@ import org.bukkit.inventory.PlayerInventory;
 
 final class CauldronListener implements Listener {
 
-  private static final Set<Material> STIRRER;
-
-  static {
-    STIRRER = new HashSet<>();
-    STIRRER.add(Material.BLAZE_ROD);
-  }
-
   private final Brew brew;
 
   public CauldronListener(Brew brew) {
@@ -52,32 +44,27 @@ final class CauldronListener implements Listener {
 
   @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
   private void onPlayerClickCauldron(final PlayerInteractEvent event) {
-    Action action = event.getAction();
-    EquipmentSlot hand = event.getHand();
-    Block block = event.getClickedBlock();
     ItemStack item = event.getItem();
-    if (!isRightClick(action) || hand != EquipmentSlot.HAND || block == null || item == null) {
+    Block block = event.getClickedBlock();
+    if (!isRightClick(event.getAction()) || event.getHand() != EquipmentSlot.HAND || block == null
+        || item == null) {
+      return;
+    }
+    Material type = item.getType();
+    if (type == Material.AIR || type == Material.BUCKET || type == Material.GLASS_BOTTLE
+        || type == Material.POTION) {
       return;
     }
     Internal internal = brew.getInternal();
-    final IVersionProviders versionProviders = internal.getVersionProviders();
-    final ICauldronProvider cauldronProvider = versionProviders.getCauldronProvider();
-    final ICauldronEffectProvider effectProvider = versionProviders.getEffectProvider();
-    if (!cauldronProvider.isWaterCauldron(block)) {
-      return;
-    }
-    Material itemMaterial = item.getType();
-    if (itemMaterial == Material.AIR || itemMaterial == Material.BUCKET
-        || itemMaterial == Material.GLASS_BOTTLE || itemMaterial == Material.POTION) {
+    IVersionProviders version = internal.getVersionProviders();
+    if (!version.getCauldronProvider().isWaterCauldron(block)) {
       return;
     }
     Location location = block.getLocation();
-    final CauldronDao cauldronDao = internal.getCauldronDao();
-    Cauldron cauldron = null;
+    LocationKey key = new LocationKey(location);
+    ICauldron cauldron;
     try {
-      cauldron = cauldronDao.getCauldron(location, () -> Cauldron.create(location));
-    } catch (ExecutionException e) {
-      throw new RuntimeException(e);
+      cauldron = internal.cauldronDao.get(key, () -> Cauldron.create(location));
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
@@ -86,23 +73,48 @@ final class CauldronListener implements Listener {
     }
     Player player = event.getPlayer();
     event.setCancelled(true);
-    if (STIRRER.contains(itemMaterial)) {
-      effectProvider.playStirEffect(block, player);
-      cauldron.setCompleted(true);
-      cauldronDao.updateCauldron(cauldron);
+    if (internal.stirrers.contains(type)) {
+      try {
+        IPlayerSettings settings = getPlayerSettings(player);
+        IPotionResult result = internal.getPotionTrie().search(settings, cauldron.getIngredients());
+        boolean success = result.getStatus() == Status.SUCCESS;
+        version.getEffectProvider().playStirEffect(block, player, success);
+        cauldron.setCompleted(success);
+        if (success) {
+          internal.cauldronDao.update(cauldron);
+        } else {
+          internal.cauldronDao.remove(key);
+        }
+      } catch (Exception e) {
+        throw new RuntimeException(e);
+      }
     } else {
-      IMaterialProvider materialProvider = versionProviders.getMaterialProvider();
-      NamespacedKey materialKey = materialProvider.getMaterialKey(item);
+      NamespacedKey materialKey = version.getMaterialProvider().getMaterialKey(item);
       if (materialKey == null) {
         return;
       }
-      int added = 1;
       if (player.getGameMode() != GameMode.CREATIVE) {
-        item.setAmount(item.getAmount() - added);
+        item.setAmount(item.getAmount() - 1);
       }
-      effectProvider.playAddIngredientEffect(block, player);
-      cauldron.addIngredient(new CauldronIngredient(materialKey, 1));
-      cauldronDao.updateCauldron(cauldron);
+      version.getEffectProvider().playAddIngredientEffect(block, player);
+      cauldron.getIngredients().add(new CauldronIngredient(materialKey, 1));
+      internal.cauldronDao.update(cauldron);
+    }
+  }
+
+  @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
+  private void checkWaterLevelIsGoingDown(final CauldronLevelChangeEvent event) {
+    Block block = event.getBlock();
+    Location location = block.getLocation();
+    LocationKey locationKey = new LocationKey(location);
+    Internal internal = brew.getInternal();
+    IDao<ICauldron, LocationKey> cauldronDao = internal.cauldronDao;
+    ICauldronProvider cauldronProvider = brew.getInternal().getVersionProviders()
+        .getCauldronProvider();
+    int oldLevel = cauldronProvider.getOldLevel(event);
+    int newLevel = cauldronProvider.getNewLevel(event);
+    if (cauldronDao.has(locationKey) && newLevel > oldLevel) {
+      cauldronDao.remove(locationKey);
     }
   }
 
@@ -110,25 +122,12 @@ final class CauldronListener implements Listener {
   private void cauldronChangeLevel(final CauldronLevelChangeEvent event) {
     Block block = event.getBlock();
     Location location = block.getLocation();
-
-    CauldronDao cauldronDao = brew.getInternal().getCauldronDao();
-    ICauldronProvider cauldronProvider = brew.getInternal().getVersionProviders()
-        .getCauldronProvider();
-    int oldLevel = cauldronProvider.getOldLevel(event);
-    int newLevel = cauldronProvider.getNewLevel(event);
-    if (cauldronDao.hasCauldron(location) && newLevel > oldLevel) {
-      cauldronDao.deleteCauldron(location);
-    }
-
-    if (event.getReason() != ChangeReason.BOTTLE_FILL) {
-      return;
-    }
-
-    if (!cauldronDao.hasCauldron(location)) {
-      return;
-    }
+    LocationKey locationKey = new LocationKey(location);
+    Internal internal = brew.getInternal();
+    IDao<ICauldron, LocationKey> cauldronDao = internal.cauldronDao;
     Entity entity = event.getEntity();
-    if (!(entity instanceof Player)) {
+    if (!(event.getReason() == ChangeReason.BOTTLE_FILL && cauldronDao.has(locationKey))
+        || entity == null) {
       return;
     }
     Player player = (Player) entity;
@@ -143,34 +142,31 @@ final class CauldronListener implements Listener {
       int amount = bottle.getAmount();
       bottle.setAmount(amount - 1);
     }
-    try {
-      Cauldron cauldron = cauldronDao.getCauldronIfExists(location);
-      if (cauldron.isCompleted()) {
-        Trie potionTrie = brew.getInternal().getPotionTrie();
-        List<CauldronIngredient> ingredients = cauldron.getIngredients();
-        IPotionResult result = potionTrie.search(player, ingredients);
-        if (result != null) {
-          ItemStack stack = result.getStack();
-          if (stack != null) {
-            HashMap<Integer, ItemStack> cannotFit = inventory.addItem(stack);
-//            if (!cannotFit.isEmpty()) {
-//              cannotFit.values().forEach(s -> {
-//                location.getWorld().dropItemNaturally(player.getLocation(), s);
-//              });
-//            }
-
-          }
-
+    ICauldron cauldron = cauldronDao.getIfExists(new LocationKey(location));
+    if (cauldron != null && cauldron.isCompleted()) {
+      IPotionResult result;
+      try {
+        IPlayerSettings playerSettings = getPlayerSettings(player);
+        result = internal.potionTrie.search(playerSettings, cauldron.getIngredients());
+      } catch (Exception e) {
+        throw new RuntimeException(e);
+      }
+      if (result.getStatus() == Status.SUCCESS) {
+        ItemStack stack = result.getStack();
+        assert stack != null;
+        HashMap<Integer, ItemStack> cannotFit = inventory.addItem(stack);
+        if (!cannotFit.isEmpty()) {
+          cannotFit.values()
+              .forEach(s -> location.getWorld().dropItemNaturally(player.getLocation(), s));
         }
       }
-    } catch (ExecutionException e) {
-      throw new RuntimeException(e);
     }
+    ICauldronProvider cauldronProvider = internal.getVersionProviders().getCauldronProvider();
     int old = cauldronProvider.getCauldronLevel(block);
     int level = old - 1;
     cauldronProvider.setCauldronLevel(block, level);
     if (level == 0) {
-      cauldronDao.deleteCauldron(location);
+      cauldronDao.remove(new LocationKey(block.getLocation()));
     }
   }
 
@@ -190,13 +186,19 @@ final class CauldronListener implements Listener {
 
   private void removeCauldronAsync(Location location) {
     Internal internal = brew.getInternal();
-    CauldronDao cauldronDao = internal.getCauldronDao();
+    IDao<ICauldron, LocationKey> cauldronDao = internal.cauldronDao;
     CompletableFuture.runAsync(() -> {
-      if (!cauldronDao.hasCauldron(location)) {
+      if (!cauldronDao.has(new LocationKey(location))) {
         return;
       }
-      cauldronDao.deleteCauldron(location);
+      cauldronDao.remove(new LocationKey(location));
     });
+  }
+
+  private IPlayerSettings getPlayerSettings(Player player) throws Exception {
+    Internal internal = brew.getInternal();
+    return internal.playerSettingsDao.get(player.getUniqueId(),
+        () -> new PlayerSettings(player.getUniqueId(), UnsignedInteger.ONE, UnsignedInteger.ONE));
   }
 
   private static boolean isRightClick(Action action) {

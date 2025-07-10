@@ -124,7 +124,6 @@ public class VersionProviderFactory {
   private ICauldronProvider createCauldronProvider() {
     Class<?> providerClazz;
     int[] version = getVersion();
-    Bukkit.getLogger().info("version: " + version[0] + " " + version[1]);
     try {
       if (version[1] < 13) {
         providerClazz = Class.forName("org.aincraft.providers.LegacyCauldronProvider");

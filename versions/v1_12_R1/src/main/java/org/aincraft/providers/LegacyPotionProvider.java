@@ -5,7 +5,6 @@ import com.google.common.collect.HashBiMap;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
-import org.bukkit.Color;
 import org.bukkit.NamespacedKey;
 import org.bukkit.inventory.meta.PotionMeta;
 import org.bukkit.potion.PotionData;

@@ -3,7 +3,6 @@ package org.aincraft;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 import java.util.Objects;
-import java.util.function.Function;
 import org.bukkit.NamespacedKey;
 import org.jetbrains.annotations.NotNull;
 
@@ -61,10 +60,6 @@ public final class CauldronIngredient {
   @Override
   public int hashCode() {
     return Objects.hash(itemKey, amount);
-  }
-
-  public void updateAmount(Function<Integer, Integer> update) {
-    amount = update.apply(amount);
   }
 
   public int getAmount() {

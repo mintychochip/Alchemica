@@ -32,7 +32,7 @@ final class NonClosableConnection implements Connection {
 
   @SuppressWarnings("unchecked")
   @Override
-  public final <T> T unwrap(Class<T> iface) throws SQLException {
+  public <T> T unwrap(Class<T> iface) throws SQLException {
     if (iface.isInstance(this.delegate)) {
       return (T) this.delegate;
     }
@@ -40,7 +40,7 @@ final class NonClosableConnection implements Connection {
   }
 
   @Override
-  public final boolean isWrapperFor(Class<?> iface) throws SQLException {
+  public boolean isWrapperFor(Class<?> iface) throws SQLException {
     return iface.isInstance(this.delegate) || this.delegate.isWrapperFor(iface);
   }  @Override
   public final void close() throws SQLException {
