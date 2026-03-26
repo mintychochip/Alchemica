@@ -1,4 +1,4 @@
-name: Brew
+name: Alchemica
 version: '1.1'
 main: org.aincraft.BrewBootstrap
 authors: [ mintychochip ]

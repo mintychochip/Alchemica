@@ -6,438 +6,266 @@ duration-stages:
   long: 9600
   very_long: 12000
   very: 15000
+
 stirrers:
   - blaze_rod
   - stick
-root: water-potion
-nodes:
-  water-potion:
-    type: base
-    item: air
-    potion-type: water
 
+recipes:
   weakness-potion:
-    type: base
-    item: fermented_spider_eye
+    ingredients:
+      - fermented_spider_eye
     potion-type: weakness
-    parents:
-      - water-potion
 
   awkward-potion:
-    type: base
-    item: nether_wart
+    ingredients:
+      - nether_wart
     potion-type: awkward
-    parents:
-      - water-potion
 
   thick-potion:
-    type: base
-    item: glowstone_dust
+    ingredients:
+      - glowstone_dust
     potion-type: thick
-    parents:
-      - water-potion
 
   night-vision-potion:
-    type: base
-    item: golden_carrot
+    ingredients:
+      - nether_wart
+      - golden_carrot
     potion-type: night_vision
-    parents:
-      - awkward-potion
 
-  f-invisibility-potion:
-    type: base
-    item: fermented_spider_eye
+  invisibility-potion:
+    ingredients:
+      - nether_wart
+      - golden_carrot
+      - fermented_spider_eye
     potion-type: invisibility
-    parents:
-      - night-vision-potion
 
-  speed-potion:
-    type: base
-    item: sugar
+  swiftness-potion:
+    ingredients:
+      - nether_wart
+      - sugar
     potion-type: swiftness
-    parents:
-      - awkward-potion
 
-  f-slowness-potion:
-    type: base
-    item: fermented_spider_eye
+  slowness-potion:
+    ingredients:
+      - nether_wart
+      - sugar
+      - fermented_spider_eye
     potion-type: slowness
-    parents:
-      - speed-potion
-      - fire-resistance-potion
 
   strength-potion:
-    type: base
-    item: blaze_powder
+    ingredients:
+      - nether_wart
+      - blaze_powder
     potion-type: strength
-    parents:
-      - awkward-potion
 
   fire-resistance-potion:
-    type: base
-    item: magma_cream
+    ingredients:
+      - nether_wart
+      - magma_cream
     potion-type: fire_resistance
-    parents:
-      - awkward-potion
+
+  slowness-from-fire-resistance:
+    ingredients:
+      - nether_wart
+      - magma_cream
+      - fermented_spider_eye
+    potion-type: slowness
 
   poison-potion:
-    type: base
-    item: spider_eye
+    ingredients:
+      - nether_wart
+      - spider_eye
     potion-type: poison
-    parents:
-      - awkward-potion
+
+  harming-potion:
+    ingredients:
+      - nether_wart
+      - spider_eye
+      - fermented_spider_eye
+    potion-type: harming
 
   healing-potion:
-    type: base
-    item: glistering_melon_slice
+    ingredients:
+      - nether_wart
+      - glistering_melon_slice
     potion-type: healing
-    parents:
-      - awkward-potion
 
   regeneration-potion:
-    type: base
-    item: ghast_tear
+    ingredients:
+      - nether_wart
+      - ghast_tear
     potion-type: regeneration
-    parents:
-      - awkward-potion
-
-  f-harming-potion:
-    type: base
-    item: fermented_spider_eye
-    potion-type: harming
-    parents:
-      - poison-potion
 
   water-breathing-potion:
-    type: base
-    item: pufferfish
+    ingredients:
+      - nether_wart
+      - pufferfish
     potion-type: water_breathing
-    parents:
-      - awkward-potion
 
   slow-falling-potion:
-    type: base
-    item: phantom_membrane
+    ingredients:
+      - nether_wart
+      - phantom_membrane
     potion-type: slow_falling
-    parents:
-      - awkward-potion
 
   leaping-potion:
-    type: base
-    item: rabbit_foot
+    ingredients:
+      - nether_wart
+      - rabbit_foot
     potion-type: leaping
-    parents:
-      - awkward-potion
 
   turtle-master-potion:
-    type: base
-    item: turtle_helmet
+    ingredients:
+      - nether_wart
+      - turtle_helmet
     potion-type: turtle_master
-    parents:
-      - awkward-potion
 
   oozing-potion:
-    type: base
-    item: slime_block
+    ingredients:
+      - nether_wart
+      - slime_block
     potion-type: oozing
-    parents:
-      - awkward-potion
 
   infestation-potion:
-    type: base
-    item: stone
+    ingredients:
+      - nether_wart
+      - stone
     potion-type: infested
-    parents:
-      - awkward-potion
 
   weaving-potion:
-    type: base
-    item: cobweb
+    ingredients:
+      - nether_wart
+      - cobweb
     potion-type: weaving
-    parents:
-      - awkward-potion
 
   wind-charged-potion:
-    type: base
-    item: breeze_rod
+    ingredients:
+      - nether_wart
+      - breeze_rod
     potion-type: wind_charged
-    parents:
-      - awkward-potion
 
+effects:
   speed-effect:
-    type: effect
     item: sugar
     effect: speed
-    parents:
-      - effect[.*]
-      - base[^(?!water|awkward|thick|mundane|f-).*$]
-
 
   haste-effect:
-    type: effect
     item: cake
     effect: haste
-    parents:
-      - effect[.*]
-      - base[^(?!water|awkward|thick|mundane|f-).*$]
-
 
   strength-effect:
-    type: effect
     item: blaze_powder
     effect: strength
-    parents:
-      - effect[.*]
-      - base[^(?!water|awkward|thick|mundane|f-).*$]
-
 
   healing-effect:
-    type: effect
     item: glistering_melon_slice
     effect: instant_health
-    parents:
-      - effect[.*]
-      - base[^(?!water|awkward|thick|mundane|f-).*$]
-
 
   jump-boost-effect:
-    type: effect
     item: rabbit_foot
     effect: jump_boost
-    parents:
-      - effect[.*]
-      - base[^(?!water|awkward|thick|mundane|f-).*$]
-
 
   nausea-effect:
-    type: effect
     item: poisonous_potato
     effect: nausea
-    parents:
-      - effect[.*]
-      - base[^(?!water|awkward|thick|mundane|f-).*$]
-
 
   regeneration-effect:
-    type: effect
     item: ghast_tear
     effect: regeneration
-    parents:
-      - effect[.*]
-      - base[^(?!water|awkward|thick|mundane|f-).*$]
-
 
   resistance-effect:
-    type: effect
     item: iron_block
     effect: resistance
-    parents:
-      - effect[.*]
-      - base[^(?!water|awkward|thick|mundane|f-).*$]
-
 
   fire-resistance-effect:
-    type: effect
     item: magma_cream
     effect: fire_resistance
-    parents:
-      - effect[.*]
-      - base[^(?!water|awkward|thick|mundane|f-).*$]
-
 
   water-breathing-effect:
-    type: effect
     item: pufferfish
     effect: water_breathing
-    parents:
-      - effect[.*]
-      - base[^(?!water|awkward|thick|mundane|f-).*$]
-
 
   blindness-effect:
-    type: effect
     item: ink_sac
     effect: blindness
-    parents:
-      - effect[.*]
-      - base[^(?!water|awkward|thick|mundane|f-).*$]
-
 
   night-vision-effect:
-    type: effect
     item: golden_carrot
     effect: night_vision
-    parents:
-      - effect[.*]
-      - base[^(?!water|awkward|thick|mundane|f-).*$]
-
 
   hunger-effect:
-    type: effect
     item: rotten_flesh
     effect: hunger
-    parents:
-      - effect[.*]
-      - base[^(?!water|awkward|thick|mundane|f-).*$]
-
 
   poison-effect:
-    type: effect
     item: spider_eye
     effect: poison
-    parents:
-      - effect[.*]
-      - base[^(?!water|awkward|thick|mundane|f-).*$]
-
 
   wither-effect:
-    type: effect
     item: wither_rose
     effect: wither
-    parents:
-      - effect[.*]
-      - base[^(?!water|awkward|thick|mundane|f-).*$]
-
 
   saturation-effect:
-    type: effect
     item: steak
     effect: saturation
-    parents:
-      - effect[.*]
-      - base[^(?!water|awkward|thick|mundane|f-).*$]
-
 
   glowing-effect:
-    type: effect
     item: glow_ink_sac
     effect: glowing
-    parents:
-      - effect[.*]
-      - base[^(?!water|awkward|thick|mundane|f-).*$]
-
 
   luck-effect:
-    type: effect
     item: oak_leaves
     effect: luck
-    parents:
-      - effect[.*]
-      - base[^(?!water|awkward|thick|mundane|f-).*$]
-
 
   slow-falling-effect:
-    type: effect
     item: phantom_membrane
     effect: slow_falling
-    parents:
-      - effect[.*]
-      - base[^(?!water|awkward|thick|mundane|f-).*$]
-
 
   wind-charged-effect:
-    type: effect
     item: breeze_rod
     effect: wind_charged
-    parents:
-      - effect[.*]
-      - base[^(?!water|awkward|thick|mundane|f-).*$]
-
 
   weaving-effect:
-    type: effect
     item: cobweb
     effect: weaving
-    parents:
-      - effect[.*]
-      - base[^(?!water|awkward|thick|mundane|f-).*$]
-
 
   oozing-effect:
-    type: effect
     item: slime_block
     effect: oozing
-    parents:
-      - effect[.*]
-      - base[^(?!water|awkward|thick|mundane|f-).*$]
-
 
   infestation-effect:
-    type: effect
     item: stone
     effect: infested
-    parents:
-      - effect[.*]
-      - base[^(?!water|awkward|thick|mundane|f-).*$]
 
-
+modifiers:
   lesser-extension:
-    type: modifier
     item: redstone
-    modifiers:
-      duration: 1
-    parents:
-      - effect[.*]
-      - base[^(?!water|awkward|thick|mundane|f-).*$]
-      - modifier[^(?!splash|lingering).*]
+    duration: 1
 
   extension:
-    type: modifier
     item: redstone_ore
-    modifiers:
-      duration: 2
-    parents:
-      - effect[.*]
-      - base[^(?!water|awkward|thick|mundane|f-).*$]
-      - modifier[^(?!splash|lingering).*]
+    duration: 2
 
   greater-extension:
-    type: modifier
     item: redstone_block
-    modifiers:
-      duration: 3
-    parents:
-      - effect[.*]
-      - base[^(?!water|awkward|thick|mundane|f-).*$]
-      - modifier[^(?!splash|lingering).*]
+    duration: 3
 
   lesser-amplify:
-    type: modifier
     item: glowstone_dust
-    modifiers:
-      amplifier: 1
-    parents:
-      - effect[.*]
-      - base[^(?!water|awkward|thick|mundane|f-).*$]
-      - modifier[^(?!splash|lingering).*]
+    amplifier: 1
 
   amplify:
-    type: modifier
     item: glowstone
-    modifiers:
-      amplifier: 2
-    parents:
-      - effect[.*]
-      - base[^(?!water|awkward|thick|mundane|f-).*$]
-      - modifier[^(?!splash|lingering).*]
+    amplifier: 2
 
   splash-potion:
-    type: modifier
     item: gunpowder
-    modifiers:
-      potion_material: splash_potion
-    parents:
-      - effect[.*]
-      - base[.*]
-      - modifier[.*]
+    potion_material: splash_potion
 
   lingering-potion:
-    type: modifier
     item: dragon_breath
-    modifiers:
-      potion_material: lingering_potion
-    parents:
-      - splash-potion
+    potion_material: lingering_potion
 
 effect_durations:
   absorption: medium
@@ -479,4 +307,3 @@ effect_durations:
   weaving: short
   wind_charged: long
   wither: short
-

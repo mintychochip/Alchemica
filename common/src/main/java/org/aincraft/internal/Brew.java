@@ -9,6 +9,7 @@ import org.aincraft.providers.VersionProviderFactory;
 import org.bukkit.Bukkit;
 import org.bukkit.NamespacedKey;
 import org.bukkit.plugin.Plugin;
+import org.bukkit.plugin.PluginManager;
 
 public final class Brew implements IBrew {
 
@@ -47,7 +48,14 @@ public final class Brew implements IBrew {
 
   @Override
   public void enable() {
-    Bukkit.getPluginManager().registerEvents(new CauldronListener(this), plugin);
+    PluginManager pm = Bukkit.getPluginManager();
+    pm.registerEvents(new CauldronListener(this), plugin);
+    // CauldronLevelChangeEvent was added in Bukkit 1.9.  Only register the listener
+    // that depends on it when running on a 1.9+ server.
+    int[] ver = VersionProviderFactory.getVersion();
+    if (ver[1] >= 9) {
+      pm.registerEvents(new CauldronLevelListener(this), plugin);
+    }
     Bukkit.getPluginCommand("creload").setExecutor(new Reload(this));
   }
 

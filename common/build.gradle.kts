@@ -8,6 +8,9 @@ dependencies {
     implementation(project(":versions:base")) {
         exclude(group = "org.spigotmc", module = "spigot-api")
     }
+    implementation(project(":versions:v1_8")) {
+        exclude(group = "org.spigotmc", module = "spigot-api")
+    }
     implementation(project(":versions:v1_12_R1")) {
         exclude(group = "org.spigotmc", module = "spigot-api")
     }
@@ -16,8 +19,21 @@ dependencies {
     }
     compileOnly("org.spigotmc:spigot-api:1.12.2-R0.1-SNAPSHOT") // or lowest supported
     compileOnly("org.jetbrains:annotations:24.1.0")
+    testImplementation("org.junit.jupiter:junit-jupiter:5.11.3")
+    testImplementation("com.google.guava:guava:33.3.1-jre")
+    testImplementation("org.mockbukkit.mockbukkit:mockbukkit-v1.21:4.7.0")
 }
 
+
+tasks.withType<Test>().configureEach {
+    useJUnitPlatform()
+    // MockBukkit requires Java 17+ — override the global release=8 for test compilation
+    jvmArgs("-Xmx512m")
+}
+
+tasks.named<JavaCompile>("compileTestJava") {
+    options.release.set(17)
+}
 
 tasks.withType<Jar>().configureEach {
     manifest {
@@ -49,11 +65,11 @@ tasks {
         minecraftVersion("1.21.7")
     }
 
-//
-//    named<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar>("shadowJar") {
-//        archiveFileName.set("${project.name}-${project.version}.jar")
-//        destinationDirectory.set(file("C:\\Users\\justi\\Desktop\\paper\\plugins"))
-//    }
+
+    named<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar>("shadowJar") {
+        archiveFileName.set("${rootProject.name}-${project.version}.jar")
+        destinationDirectory.set(file("C:\\Users\\justi\\Desktop\\paper\\plugins"))
+    }
 }
 
 hangarPublish {
