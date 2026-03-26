@@ -3,9 +3,11 @@ package org.aincraft.dao;
 import java.util.List;
 import java.util.UUID;
 import org.aincraft.CauldronIngredient;
+import org.aincraft.IPotionResult;
 import org.aincraft.container.LocationKey;
 import org.bukkit.Location;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public interface ICauldron extends IDaoObject<LocationKey> {
   @NotNull
@@ -13,5 +15,7 @@ public interface ICauldron extends IDaoObject<LocationKey> {
   UUID getCauldronId();
   boolean isCompleted();
   void setCompleted(boolean completed);
+  @Nullable IPotionResult getCachedResult();
+  void setCachedResult(IPotionResult result);
   Location getLocation();
 }

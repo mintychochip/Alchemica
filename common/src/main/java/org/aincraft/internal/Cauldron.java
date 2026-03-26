@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import org.aincraft.CauldronIngredient;
+import org.aincraft.IPotionResult;
 import org.aincraft.container.LocationKey;
 import org.aincraft.dao.ICauldron;
 import org.bukkit.Location;
@@ -21,6 +22,7 @@ public final class Cauldron implements ICauldron {
 
   private int completed;
 
+  private transient IPotionResult cachedResult;
 
   public Cauldron(UUID cauldronId, Location location, List<CauldronIngredient> ingredients,
       int completed) {
@@ -59,6 +61,16 @@ public final class Cauldron implements ICauldron {
 
   public boolean isCompleted() {
     return completed == 1;
+  }
+
+  @Override
+  public IPotionResult getCachedResult() {
+    return cachedResult;
+  }
+
+  @Override
+  public void setCachedResult(IPotionResult result) {
+    this.cachedResult = result;
   }
 
   @Override
