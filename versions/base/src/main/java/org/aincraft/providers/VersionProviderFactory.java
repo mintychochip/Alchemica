@@ -69,7 +69,9 @@ public class VersionProviderFactory {
     Class<?> providerClazz;
     int[] version = getVersion();
     try {
-      if (version[1] < 19) {
+      if (version[1] < 9) {
+        providerClazz = Class.forName("org.aincraft.providers.v1_8_PotionProvider");
+      } else if (version[1] < 19) {
         providerClazz = Class.forName("org.aincraft.providers.LegacyPotionProvider");
       } else {
         if (isPaperServer()) {
@@ -98,7 +100,9 @@ public class VersionProviderFactory {
     Class<?> providerClazz;
     int[] version = getVersion();
     try {
-      if (version[1] < 13) {
+      if (version[1] < 9) {
+        providerClazz = Class.forName("org.aincraft.providers.v1_8_CauldronEffectProvider");
+      } else if (version[1] < 13) {
         providerClazz = Class.forName("org.aincraft.providers.LegacyCauldronEffectProvider");
       } else if (version[1] < 21) {
         providerClazz = Class.forName("org.aincraft.providers.v1_13_CauldronEffectProvider");
@@ -125,7 +129,9 @@ public class VersionProviderFactory {
     Class<?> providerClazz;
     int[] version = getVersion();
     try {
-      if (version[1] < 13) {
+      if (version[1] < 9) {
+        providerClazz = Class.forName("org.aincraft.providers.v1_8_CauldronProvider");
+      } else if (version[1] < 13) {
         providerClazz = Class.forName("org.aincraft.providers.LegacyCauldronProvider");
       } else if (version[1] < 17) {
         providerClazz = Class.forName("org.aincraft.providers.v1_13_CauldronProvider");
@@ -148,7 +154,7 @@ public class VersionProviderFactory {
     }
   }
 
-  static boolean isLegacyVersion() {
+  public static boolean isLegacyVersion() {
     String version = Bukkit.getBukkitVersion();
     String[] parts = version.split("-")[0].split("\\.");
     try {
@@ -160,7 +166,7 @@ public class VersionProviderFactory {
     }
   }
 
-  static int[] getVersion() {
+  public static int[] getVersion() {
     String bukkitVersion = Bukkit.getBukkitVersion();
     String[] split = bukkitVersion.split("-")[0].split("\\.");
     int[] version = new int[2];
@@ -169,7 +175,7 @@ public class VersionProviderFactory {
     return version;
   }
 
-  static boolean isPaperServer() {
+  public static boolean isPaperServer() {
     try {
       // Paper 1.19+ has this class
       Class.forName("io.papermc.paper.configuration.Configuration");

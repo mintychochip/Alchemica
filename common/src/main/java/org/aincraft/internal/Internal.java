@@ -30,7 +30,7 @@ import org.bukkit.plugin.Plugin;
 
 final class Internal {
 
-  final Trie potionTrie;
+  final RecipeRegistry recipeRegistry;
   final IDurationStageRegistry durationRegistry;
   final IPotionDurationMap potionDurationMap;
   final IStorage database;
@@ -41,7 +41,7 @@ final class Internal {
   final IDao<IPlayerSettings, UUID> playerSettingsDao;
 
   Internal(
-      Trie potionTrie,
+      RecipeRegistry recipeRegistry,
       IDurationStageRegistry durationRegistry,
       IPotionDurationMap potionDurationMap,
       IStorage database,
@@ -49,7 +49,7 @@ final class Internal {
       IDao<ICauldron, LocationKey> cauldronDao, IVersionProviders versionProviders,
       Set<Material> stirrers,
       IDao<IPlayerSettings, UUID> playerSettingsDao) {
-    this.potionTrie = potionTrie;
+    this.recipeRegistry = recipeRegistry;
     this.durationRegistry = durationRegistry;
     this.potionDurationMap = potionDurationMap;
     this.database = database;
@@ -72,8 +72,8 @@ final class Internal {
     return potionDurationMap;
   }
 
-  public Trie getPotionTrie() {
-    return potionTrie;
+  public RecipeRegistry getRecipeRegistry() {
+    return recipeRegistry;
   }
 
   public IStorage getDatabase() {
@@ -102,7 +102,7 @@ final class Internal {
 
     IDao<IPlayerSettings, UUID> playerSettingsDao = new PlayerSettingsDao(database);
 
-    Trie trie = new PotionTrieFactory(
+    RecipeRegistry trie = new RecipeRegistryFactory(
         new PotionEffectMetaFactory(durationMap), general, potionProvider).create();
 
     Gson gson = new GsonBuilder()
