@@ -1,9 +1,9 @@
 duration-stages:
-  instant: 1            # For effects like healing/damage/saturation
-  short: 600            # 30 seconds
-  medium: 1200          # 1 minute
-  standard: 3600        # 3 minutes
-  long: 9600            # 8 minutes (redstone-extended)
+  instant: 1
+  short: 600
+  medium: 1200
+  standard: 3600
+  long: 9600
   very_long: 12000
   very: 15000
 stirrers:
@@ -329,7 +329,7 @@ nodes:
   slow-falling-effect:
     type: effect
     item: phantom_membrane
-    effect: water_breathing
+    effect: slow_falling
     parents:
       - effect[.*]
       - base[^(?!water|awkward|thick|mundane|f-).*$]

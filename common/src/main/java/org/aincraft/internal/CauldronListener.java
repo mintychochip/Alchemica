@@ -3,7 +3,6 @@ package org.aincraft.internal;
 import com.google.common.primitives.UnsignedInteger;
 import java.util.HashMap;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
 import org.aincraft.CauldronIngredient;
 import org.aincraft.IPotionResult;
 import org.aincraft.IPotionResult.Status;
@@ -79,6 +78,7 @@ final class CauldronListener implements Listener {
         IPotionResult result = internal.getPotionTrie().search(settings, cauldron.getIngredients());
         boolean success = result.getStatus() == Status.SUCCESS;
         version.getEffectProvider().playStirEffect(block, player, success);
+        cauldron.setCachedResult(result);
         cauldron.setCompleted(success);
         if (success) {
           internal.cauldronDao.update(cauldron);
@@ -144,12 +144,14 @@ final class CauldronListener implements Listener {
     }
     ICauldron cauldron = cauldronDao.getIfExists(new LocationKey(location));
     if (cauldron != null && cauldron.isCompleted()) {
-      IPotionResult result;
-      try {
-        IPlayerSettings playerSettings = getPlayerSettings(player);
-        result = internal.potionTrie.search(playerSettings, cauldron.getIngredients());
-      } catch (Exception e) {
-        throw new RuntimeException(e);
+      IPotionResult result = cauldron.getCachedResult();
+      if (result == null) {
+        try {
+          IPlayerSettings playerSettings = getPlayerSettings(player);
+          result = internal.potionTrie.search(playerSettings, cauldron.getIngredients());
+        } catch (Exception e) {
+          throw new RuntimeException(e);
+        }
       }
       if (result.getStatus() == Status.SUCCESS) {
         ItemStack stack = result.getStack();
@@ -173,32 +175,30 @@ final class CauldronListener implements Listener {
   @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
   private void onDestroyCauldron(final BlockBreakEvent event) {
     Block block = event.getBlock();
-    removeCauldronAsync(block.getLocation());
+    removeCauldronIfExists(block.getLocation());
   }
 
   @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
   private void onPistonMoveCauldron(final BlockPistonExtendEvent event) {
     List<Block> blocks = event.getBlocks();
     blocks.forEach(block -> {
-      this.removeCauldronAsync(block.getLocation());
+      this.removeCauldronIfExists(block.getLocation());
     });
   }
 
-  private void removeCauldronAsync(Location location) {
+  private void removeCauldronIfExists(Location location) {
     Internal internal = brew.getInternal();
     IDao<ICauldron, LocationKey> cauldronDao = internal.cauldronDao;
-    CompletableFuture.runAsync(() -> {
-      if (!cauldronDao.has(new LocationKey(location))) {
-        return;
-      }
-      cauldronDao.remove(new LocationKey(location));
-    });
+    LocationKey key = new LocationKey(location);
+    if (cauldronDao.has(key)) {
+      cauldronDao.remove(key);
+    }
   }
 
   private IPlayerSettings getPlayerSettings(Player player) throws Exception {
     Internal internal = brew.getInternal();
     return internal.playerSettingsDao.get(player.getUniqueId(),
-        () -> new PlayerSettings(player.getUniqueId(), UnsignedInteger.ONE, UnsignedInteger.ONE));
+        () -> new PlayerSettings(player.getUniqueId(), UnsignedInteger.fromIntBits(3), UnsignedInteger.fromIntBits(3)));
   }
 
   private static boolean isRightClick(Action action) {
