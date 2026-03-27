@@ -19,11 +19,17 @@ import org.aincraft.dao.ICauldron;
 import org.aincraft.dao.IDao;
 import org.aincraft.dao.IPlayerSettings;
 import org.aincraft.dao.PlayerSettingsDao;
+import org.aincraft.command.BrewCommand;
+import org.aincraft.gui.GuiListener;
+import org.aincraft.io.RecipeYmlWriter;
 import org.aincraft.providers.IPotionProvider;
 import org.aincraft.providers.IVersionProviders;
 import org.aincraft.providers.VersionProviderFactory;
 import org.aincraft.storage.DatabaseFactory;
 import org.aincraft.storage.Extractor.ResourceExtractor;
+import org.aincraft.wizard.LoreCaptureManager;
+import org.aincraft.wizard.WizardSessionFactory;
+import org.aincraft.wizard.WizardSessionManager;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.plugin.Plugin;
@@ -39,6 +45,10 @@ final class Internal {
   final IVersionProviders versionProviders;
   final Set<Material> stirrers;
   final IDao<IPlayerSettings, UUID> playerSettingsDao;
+  final WizardSessionManager wizardSessionManager;
+  final LoreCaptureManager loreCaptureManager;
+  final RecipeYmlWriter recipeYmlWriter;
+  final WizardSessionFactory wizardSessionFactory;
 
   Internal(
       RecipeRegistry recipeRegistry,
@@ -48,7 +58,11 @@ final class Internal {
       Gson gson,
       IDao<ICauldron, LocationKey> cauldronDao, IVersionProviders versionProviders,
       Set<Material> stirrers,
-      IDao<IPlayerSettings, UUID> playerSettingsDao) {
+      IDao<IPlayerSettings, UUID> playerSettingsDao,
+      WizardSessionManager wizardSessionManager,
+      LoreCaptureManager loreCaptureManager,
+      RecipeYmlWriter recipeYmlWriter,
+      WizardSessionFactory wizardSessionFactory) {
     this.recipeRegistry = recipeRegistry;
     this.durationRegistry = durationRegistry;
     this.potionDurationMap = potionDurationMap;
@@ -58,6 +72,10 @@ final class Internal {
     this.versionProviders = versionProviders;
     this.stirrers = stirrers;
     this.playerSettingsDao = playerSettingsDao;
+    this.wizardSessionManager = wizardSessionManager;
+    this.loreCaptureManager = loreCaptureManager;
+    this.recipeYmlWriter = recipeYmlWriter;
+    this.wizardSessionFactory = wizardSessionFactory;
   }
 
   public IVersionProviders getVersionProviders() {
@@ -112,6 +130,15 @@ final class Internal {
         .create();
     Set<Material> stirrers = new StirrerSetFactory(general).create();
     IDao<ICauldron, LocationKey> cauldronDao = new CauldronDao(database, gson);
+
+    java.io.File dataFolder = plugin.getDataFolder();
+    java.io.File generalFile = new java.io.File(dataFolder, "general.yml");
+    java.io.File potionsFile = new java.io.File(dataFolder, "potions.yml");
+    WizardSessionManager sessionManager = new WizardSessionManager();
+    LoreCaptureManager loreManager = new LoreCaptureManager();
+    RecipeYmlWriter ymlWriter = new RecipeYmlWriter(generalFile, potionsFile);
+    WizardSessionFactory sessionFactory = new WizardSessionFactory(generalFile, potionsFile);
+
     return new Internal(
         trie,
         durationRegistry,
@@ -119,7 +146,11 @@ final class Internal {
         database,
         gson,
         cauldronDao,
-        versionProviders, stirrers, playerSettingsDao
+        versionProviders, stirrers, playerSettingsDao,
+        sessionManager,
+        loreManager,
+        ymlWriter,
+        sessionFactory
     );
   }
 

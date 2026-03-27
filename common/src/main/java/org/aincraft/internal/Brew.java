@@ -4,7 +4,9 @@ import com.google.common.base.Preconditions;
 import org.aincraft.IBrew;
 import org.aincraft.IPluginConfiguration;
 import org.aincraft.IStorage;
+import org.aincraft.command.BrewCommand;
 import org.aincraft.command.Reload;
+import org.aincraft.gui.GuiListener;
 import org.aincraft.providers.VersionProviderFactory;
 import org.bukkit.Bukkit;
 import org.bukkit.NamespacedKey;
@@ -57,6 +59,27 @@ public final class Brew implements IBrew {
       pm.registerEvents(new CauldronLevelListener(this), plugin);
     }
     Bukkit.getPluginCommand("creload").setExecutor(new Reload(this));
+
+    pm.registerEvents(new GuiListener(), plugin);
+    pm.registerEvents(internal.loreCaptureManager, plugin);
+
+    // Register /brew with null openers for now — Task 18 Step 3 replaces these
+    // with concrete Consumer<Player> lambdas once all GUI classes exist.
+    BrewCommand brewCommand = new BrewCommand(
+        plugin,
+        internal.wizardSessionManager,
+        internal.loreCaptureManager,
+        null,   // replaced in Task 18 Step 3
+        null    // replaced in Task 18 Step 3
+    );
+    Bukkit.getPluginCommand("brew").setExecutor(brewCommand);
+
+    pm.registerEvents(new org.bukkit.event.Listener() {
+      @org.bukkit.event.EventHandler
+      public void onQuit(org.bukkit.event.player.PlayerQuitEvent e) {
+        internal.wizardSessionManager.remove(e.getPlayer().getUniqueId());
+      }
+    }, plugin);
   }
 
   @Override
