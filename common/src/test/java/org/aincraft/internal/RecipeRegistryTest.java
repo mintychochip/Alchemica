@@ -85,12 +85,13 @@ class RecipeRegistryTest {
     private static RecipeRegistry.BaseRecipe baseRecipe(List<CauldronIngredient> ingredients,
             String permission) {
         NamespacedKey dummyKey = new NamespacedKey("test", "water");
-        return new RecipeRegistry.BaseRecipe(ingredients, ctx -> ctx.potionkey = dummyKey, permission);
+        return new RecipeRegistry.BaseRecipe(ingredients, ctx -> ctx.potionkey = dummyKey,
+            permission, Collections.emptySet());
     }
 
     /** Creates a no-op {@link RecipeRegistry.RegistryStep}. */
     private static RecipeRegistry.RegistryStep step(CauldronIngredient ingredient, String permission) {
-        return new RecipeRegistry.RegistryStep(ingredient, ctx -> {}, permission);
+        return new RecipeRegistry.RegistryStep(ingredient, ctx -> {}, permission, permission);
     }
 
     /**
@@ -481,7 +482,8 @@ class RecipeRegistryTest {
         RecipeRegistry.BaseRecipe recipe = new RecipeRegistry.BaseRecipe(
             java.util.List.of(ingredient),
             ctx -> ctx.customMeta = meta,
-            "alchemica.test"
+            "alchemica.test",
+            Collections.emptySet()
         );
 
         RecipeRegistry registry = new RecipeRegistry(java.util.List.of(recipe), java.util.List.of(), java.util.List.of());
@@ -499,6 +501,31 @@ class RecipeRegistryTest {
     }
 
     @Test
+    void search_disabledModifier_isSkipped() {
+        CauldronIngredient a   = ingredient(KEY_A);
+        CauldronIngredient mod = ingredient(KEY_MOD);
+
+        // Recipe disables MOD_KEY
+        RecipeRegistry.BaseRecipe recipe = new RecipeRegistry.BaseRecipe(
+            List.of(a),
+            ctx -> ctx.potionkey = new NamespacedKey("test", "water"),
+            PERM_BASE,
+            Set.of("mod-one")   // disabled modifier key
+        );
+        RecipeRegistry.RegistryStep modStep = new RecipeRegistry.RegistryStep(
+            mod, ctx -> {}, PERM_MOD, "mod-one"
+        );
+
+        RecipeRegistry registry = new RecipeRegistry(
+            List.of(recipe), Collections.emptyList(), List.of(modStep)
+        );
+
+        // Modifier is globally registered but disabled for this recipe → BAD_RECIPE_PATH
+        IPotionResult result = registry.search(settingsFor(player), List.of(a, mod));
+        assertEquals(Status.BAD_RECIPE_PATH, result.getStatus());
+    }
+
+    @Test
     void search_customPotion_hasLore() {
         NamespacedKey ingredientKey = NamespacedKey.minecraft("nether_wart");
         CauldronIngredient ingredient = new CauldronIngredient(ingredientKey);
@@ -511,7 +538,8 @@ class RecipeRegistryTest {
         RecipeRegistry.BaseRecipe recipe = new RecipeRegistry.BaseRecipe(
             java.util.List.of(ingredient),
             ctx -> ctx.customMeta = meta,
-            "alchemica.test"
+            "alchemica.test",
+            Collections.emptySet()
         );
 
         RecipeRegistry registry = new RecipeRegistry(java.util.List.of(recipe), java.util.List.of(), java.util.List.of());

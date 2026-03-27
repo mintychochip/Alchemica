@@ -2,9 +2,12 @@ package org.aincraft.internal;
 
 import com.google.common.base.Preconditions;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Consumer;
 import org.aincraft.CauldronIngredient;
 import org.aincraft.IConfiguration.IYamlConfiguration;
@@ -113,7 +116,13 @@ final class RecipeRegistryFactory {
         "alchemica." + key.toLowerCase(Locale.ENGLISH));
     Bukkit.getPluginManager().addPermission(new Permission(permission, PermissionDefault.TRUE));
 
-    return new BaseRecipe(ingredients, consumer, permission);
+    // Read disabled-modifiers list from yml
+    List<String> disabledList = section.getStringList("disabled-modifiers");
+    Set<String> disabledModifiers = disabledList.isEmpty()
+        ? Collections.emptySet()
+        : new HashSet<>(disabledList);
+
+    return new BaseRecipe(ingredients, consumer, permission, disabledModifiers);
   }
 
   private Consumer<PotionContext> createCustomPotionConsumer(String resultKeyString) {
@@ -213,7 +222,7 @@ final class RecipeRegistryFactory {
         "alchemica." + key.toLowerCase(Locale.ENGLISH));
     Bukkit.getPluginManager().addPermission(new Permission(permission, PermissionDefault.TRUE));
 
-    return new RegistryStep(ingredient, consumer, permission);
+    return new RegistryStep(ingredient, consumer, permission, key);
   }
 
   private RegistryStep createModifierStep(String key, ConfigurationSection section) {
@@ -263,6 +272,6 @@ final class RecipeRegistryFactory {
         "alchemica." + key.toLowerCase(Locale.ENGLISH));
     Bukkit.getPluginManager().addPermission(new Permission(permission, PermissionDefault.TRUE));
 
-    return new RegistryStep(ingredient, consumer, permission);
+    return new RegistryStep(ingredient, consumer, permission, key);
   }
 }

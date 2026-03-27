@@ -34,10 +34,10 @@ import org.jetbrains.annotations.Nullable;
 final class RecipeRegistry {
 
   record BaseRecipe(List<CauldronIngredient> ingredients, Consumer<PotionContext> consumer,
-      String permission) {}
+      String permission, Set<String> disabledModifiers) {}
 
   record RegistryStep(CauldronIngredient ingredient, Consumer<PotionContext> consumer,
-      String permission) {}
+      String permission, String key) {}
 
   private static final IPotionResult FAILED = new PotionResult(Status.BAD_RECIPE_PATH, null, null);
 
@@ -101,6 +101,9 @@ final class RecipeRegistry {
       if (modifier != null) {
         if (!player.hasPermission(modifier.permission())) {
           return new PotionResult(Status.NO_PERMISSION, null, null);
+        }
+        if (matched.disabledModifiers().contains(modifier.key())) {
+          return FAILED;
         }
         modifierCount--;
         if (modifierCount < 0) {
