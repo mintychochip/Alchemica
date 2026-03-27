@@ -38,7 +38,8 @@ public final class RecipeWizardGui implements AlchemicaGui {
 
     public RecipeWizardGui(Plugin plugin, Player player, WizardSession session,
             WizardSessionManager sessionManager, Runnable onCancel,
-            Set<String> existingKeys, LoreCaptureManager loreCaptureManager) {
+            Set<String> existingKeys, LoreCaptureManager loreCaptureManager,
+            List<String> modifierKeys) {
         this.plugin = plugin;
         this.player = player;
         this.session = session;
@@ -46,6 +47,7 @@ public final class RecipeWizardGui implements AlchemicaGui {
         this.onCancel = onCancel;
         this.existingKeys = existingKeys;
         this.loreCaptureManager = loreCaptureManager;
+        this.modifierKeys = modifierKeys;
         sessionManager.put(player.getUniqueId(), session);
     }
 
@@ -151,7 +153,35 @@ public final class RecipeWizardGui implements AlchemicaGui {
         return (seconds / 60) + "m " + (seconds % 60) + "s";
     }
 
-    private void openModifiersStep()         { /* Task 15 */ }
+    private void openModifiersStep() {
+        if (modifierKeys.isEmpty()) {
+            // Skip to confirm
+            openStep(WizardStep.CONFIRM);
+            return;
+        }
+        // Initialise toggle state for any missing keys (default: enabled)
+        for (String key : modifierKeys) {
+            session.modifierToggles.putIfAbsent(key, true);
+        }
+        int rows = Math.max(2, (int) Math.ceil((modifierKeys.size() + 9) / 9.0) + 1);
+        Inventory inv = Bukkit.createInventory(this, rows * 9, buildTitle(
+            session.resultType == org.aincraft.wizard.RecipeResultType.CUSTOM ? 5 : 4));
+        for (int i = 0; i < modifierKeys.size(); i++) {
+            String key = modifierKeys.get(i);
+            boolean enabled = session.modifierToggles.getOrDefault(key, true);
+            Material icon = enabled ? Material.LIME_STAINED_GLASS_PANE
+                                    : Material.RED_STAINED_GLASS_PANE;
+            String status = enabled ? "&aEnabled" : "&cDisabled";
+            inv.setItem(i, GuiUtils.named(icon, "&f" + key, status));
+        }
+        int last = rows * 9;
+        inv.setItem(last - 9, GuiUtils.named(Material.ARROW, "&7Back"));
+        inv.setItem(last - 1, GuiUtils.named(Material.ARROW, "&aNext"));
+        inv.setItem(last - 5, GuiUtils.named(Material.BARRIER, "&cCancel"));
+        GuiUtils.fillRow(inv, rows - 1);
+        currentInventory = inv;
+        player.openInventory(inv);
+    }
     private void openConfirmStep()           { /* Task 16 */ }
 
     // ---- Click handling ----
@@ -164,6 +194,7 @@ public final class RecipeWizardGui implements AlchemicaGui {
             case INGREDIENTS -> handleIngredientsClick(slot, event);
             case RESULT_TYPE -> handleResultTypeClick(slot, event);
             case CUSTOM_PROPERTIES -> handleCustomPropertiesClick(slot, event);
+            case MODIFIERS -> handleModifiersClick(slot, event);
             default -> {}
         }
     }
@@ -243,6 +274,22 @@ public final class RecipeWizardGui implements AlchemicaGui {
         }
     }
 
+    private void handleModifiersClick(int slot, InventoryClickEvent event) {
+        int invSize = currentInventory.getSize();
+        int backSlot = invSize - 9;
+        int cancelSlot = invSize - 5;
+        int nextSlot = invSize - 1;
+        if (slot == backSlot) { back(); return; }
+        if (slot == cancelSlot) { cancel(); return; }
+        if (slot == nextSlot) { openStep(WizardStep.CONFIRM); return; }
+        if (slot < modifierKeys.size()) {
+            String key = modifierKeys.get(slot);
+            boolean current = session.modifierToggles.getOrDefault(key, true);
+            session.modifierToggles.put(key, !current);
+            openStep(WizardStep.MODIFIERS);
+        }
+    }
+
     private void openNameInput() {
         player.closeInventory();
         player.sendMessage("[Alchemica] Type the potion name (supports &color codes). Send blank to cancel.");
@@ -300,8 +347,7 @@ public final class RecipeWizardGui implements AlchemicaGui {
         }, () -> openStep(WizardStep.RESULT_TYPE)).open();
     }
 
-    // modifierKeys field placeholder — needed for back() logic; filled in Task 15
-    private final List<String> modifierKeys = java.util.List.of();
+    private final List<String> modifierKeys;
 
     private void back() {
         switch (currentStep) {
