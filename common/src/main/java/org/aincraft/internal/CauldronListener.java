@@ -132,6 +132,9 @@ final class CauldronListener implements Listener {
       if (materialKey == null) {
         return;
       }
+      if (cauldron.getIngredients().size() >= 64) {
+        return;
+      }
       if (player.getGameMode() != GameMode.CREATIVE) {
         item.setAmount(item.getAmount() - 1);
       }

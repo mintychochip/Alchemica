@@ -82,8 +82,9 @@ public final class Brew implements IBrew {
   }
 
   static NamespacedKey createKey(String keyString) throws IllegalArgumentException {
-    Preconditions.checkArgument(!keyString.isEmpty());
+    Preconditions.checkArgument(keyString != null && !keyString.isEmpty(), "key string must not be empty");
     String[] split = keyString.split(":");
+    Preconditions.checkArgument(split.length <= 2, "invalid key (too many ':' separators): %s", keyString);
     if (split.length == 1) {
       return NamespacedKey.minecraft(split[0]);
     }

@@ -17,7 +17,12 @@ public final class Reload implements CommandExecutor {
   @Override
   public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command,
       @NotNull String label, @NotNull String[] args) {
+    if (!sender.hasPermission("alchemica.admin.reload")) {
+      sender.sendMessage("You do not have permission to reload Alchemica.");
+      return true;
+    }
     brew.refresh();
-    return false;
+    sender.sendMessage("Alchemica reloaded.");
+    return true;
   }
 }

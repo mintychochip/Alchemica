@@ -65,7 +65,7 @@ final class CauldronLevelListener implements Listener {
         IDao<ICauldron, LocationKey> cauldronDao = internal.cauldronDao;
         Entity entity = event.getEntity();
         if (!(event.getReason() == ChangeReason.BOTTLE_FILL && cauldronDao.has(locationKey))
-                || entity == null) {
+                || !(entity instanceof Player)) {
             return;
         }
         Player player = (Player) entity;
