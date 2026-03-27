@@ -6,3 +6,15 @@ api-version: '1.13'
 commands:
   creload:
     description: hot reloads configs
+  brew:
+    description: opens the Alchemica admin recipe manager
+    usage: /brew
+permissions:
+  alchemica.admin:
+    description: Full admin access to Alchemica recipe management
+    default: op
+    children:
+      alchemica.admin.reload: true
+  alchemica.admin.reload:
+    description: Allows use of /creload
+    default: op
