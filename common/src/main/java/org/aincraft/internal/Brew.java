@@ -10,6 +10,7 @@ import org.aincraft.gui.GuiListener;
 import org.aincraft.providers.VersionProviderFactory;
 import org.bukkit.Bukkit;
 import org.bukkit.NamespacedKey;
+import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginManager;
 
@@ -63,14 +64,12 @@ public final class Brew implements IBrew {
     pm.registerEvents(new GuiListener(), plugin);
     pm.registerEvents(internal.loreCaptureManager, plugin);
 
-    // Register /brew with null openers for now — Task 18 Step 3 replaces these
-    // with concrete Consumer<Player> lambdas once all GUI classes exist.
     BrewCommand brewCommand = new BrewCommand(
         plugin,
         internal.wizardSessionManager,
         internal.loreCaptureManager,
-        null,   // replaced in Task 18 Step 3
-        null    // replaced in Task 18 Step 3
+        p -> openWizardForPlayer(p, internal),
+        p -> openBrowserForPlayer(p, internal)
     );
     Bukkit.getPluginCommand("brew").setExecutor(brewCommand);
 
@@ -102,6 +101,51 @@ public final class Brew implements IBrew {
 
   Internal getInternal() {
     return internal;
+  }
+
+  private void openHubForPlayer(Player player, Internal internal) {
+    org.aincraft.gui.RecipeHubGui hub = new org.aincraft.gui.RecipeHubGui(
+        player, internal.wizardSessionManager,
+        () -> openWizardForPlayer(player, internal),
+        () -> openBrowserForPlayer(player, internal));
+    player.openInventory(hub.getInventory());
+  }
+
+  private void openWizardForPlayer(Player player, Internal internal) {
+    openWizardForPlayer(player, internal, new org.aincraft.wizard.WizardSession());
+  }
+
+  private void openWizardForPlayer(Player player, Internal internal,
+      org.aincraft.wizard.WizardSession session) {
+    org.bukkit.configuration.file.YamlConfiguration gen =
+        org.bukkit.configuration.file.YamlConfiguration.loadConfiguration(
+            internal.recipeYmlWriter.getGeneralFile());
+    org.bukkit.configuration.ConfigurationSection modSec =
+        gen.getConfigurationSection("modifiers");
+    java.util.List<String> modKeys = modSec == null ? java.util.List.of()
+        : java.util.List.copyOf(modSec.getKeys(false));
+    org.bukkit.configuration.ConfigurationSection recSec =
+        gen.getConfigurationSection("recipes");
+    java.util.Set<String> existingKeys = recSec == null ? new java.util.HashSet<>()
+        : new java.util.HashSet<>(recSec.getKeys(false));
+    if (session.originalKey != null) existingKeys.remove(session.originalKey);
+    new org.aincraft.gui.wizard.RecipeWizardGui(plugin, player, session,
+        internal.wizardSessionManager,
+        () -> openHubForPlayer(player, internal),
+        existingKeys,
+        internal.loreCaptureManager,
+        modKeys,
+        internal.recipeYmlWriter,
+        this::refresh
+    ).open();
+  }
+
+  private void openBrowserForPlayer(Player player, Internal internal) {
+    new org.aincraft.gui.browser.RecipeBrowserGui(plugin, player,
+        internal.wizardSessionFactory,
+        internal.recipeYmlWriter,
+        () -> openHubForPlayer(player, internal),
+        editSession -> openWizardForPlayer(player, internal, editSession)).open();
   }
 
   static NamespacedKey createKey(String keyString) throws IllegalArgumentException {
