@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Set;
 import org.aincraft.gui.AlchemicaGui;
 import org.aincraft.gui.GuiUtils;
+import org.aincraft.io.RecipeYmlWriter;
 import org.aincraft.wizard.LoreCaptureManager;
 import org.aincraft.wizard.RecipeKeyValidator;
 import org.aincraft.wizard.RecipeResultType;
@@ -32,6 +33,8 @@ public final class RecipeWizardGui implements AlchemicaGui {
     /** Keys that already exist in the live registry. Used to reject duplicates in Step 1. */
     private final Set<String> existingKeys;
     private final LoreCaptureManager loreCaptureManager;
+    private final RecipeYmlWriter ymlWriter;
+    private final Runnable onRefresh;
 
     private WizardStep currentStep = WizardStep.KEY;
     private Inventory currentInventory;
@@ -39,7 +42,7 @@ public final class RecipeWizardGui implements AlchemicaGui {
     public RecipeWizardGui(Plugin plugin, Player player, WizardSession session,
             WizardSessionManager sessionManager, Runnable onCancel,
             Set<String> existingKeys, LoreCaptureManager loreCaptureManager,
-            List<String> modifierKeys) {
+            List<String> modifierKeys, RecipeYmlWriter ymlWriter, Runnable onRefresh) {
         this.plugin = plugin;
         this.player = player;
         this.session = session;
@@ -48,6 +51,8 @@ public final class RecipeWizardGui implements AlchemicaGui {
         this.existingKeys = existingKeys;
         this.loreCaptureManager = loreCaptureManager;
         this.modifierKeys = modifierKeys;
+        this.ymlWriter = ymlWriter;
+        this.onRefresh = onRefresh;
         sessionManager.put(player.getUniqueId(), session);
     }
 
@@ -182,7 +187,42 @@ public final class RecipeWizardGui implements AlchemicaGui {
         currentInventory = inv;
         player.openInventory(inv);
     }
-    private void openConfirmStep()           { /* Task 16 */ }
+    private void openConfirmStep() {
+        Inventory inv = Bukkit.createInventory(this, 54, "Confirm Recipe");
+        inv.setItem(0, GuiUtils.named(Material.PAPER, "&f" + session.key,
+            "&7Recipe key"));
+        for (int i = 0; i < session.ingredients.size() && i < 9; i++) {
+            inv.setItem(9 + i, new ItemStack(session.ingredients.get(i)));
+        }
+        // Result
+        Material resultMat = session.resultType == org.aincraft.wizard.RecipeResultType.CUSTOM
+            ? Material.SPLASH_POTION : Material.POTION;
+        String resultLabel = session.resultType == org.aincraft.wizard.RecipeResultType.CUSTOM
+            ? (session.name != null ? "&d" + session.name : "&dCustom Potion")
+            : "&b" + (session.potionType != null ? session.potionType.name().toLowerCase() : "?");
+        inv.setItem(22, GuiUtils.named(resultMat, resultLabel));
+        // Effects (custom)
+        if (session.resultType == org.aincraft.wizard.RecipeResultType.CUSTOM) {
+            for (int i = 0; i < session.effects.size() && i < 9; i++) {
+                WizardSession.EffectEntry e = session.effects.get(i);
+                inv.setItem(27 + i, GuiUtils.named(Material.BREWING_STAND,
+                    "&e" + e.type.getKey().getKey(),
+                    "&7Amp: " + e.amplifier + " Dur: " + e.durationTicks + "t"));
+            }
+        }
+        // Modifier summary
+        long disabled = session.modifierToggles.values().stream().filter(v -> !v).count();
+        inv.setItem(39, GuiUtils.named(Material.COMPARATOR,
+            "&7Modifiers",
+            "&a" + (session.modifierToggles.size() - disabled) + " enabled",
+            "&c" + disabled + " disabled"));
+
+        inv.setItem(45, GuiUtils.named(Material.ARROW, "&7Back"));
+        inv.setItem(49, GuiUtils.named(Material.LIME_WOOL, "&aSave Recipe"));
+        GuiUtils.fillEmpty(inv);
+        currentInventory = inv;
+        player.openInventory(inv);
+    }
 
     // ---- Click handling ----
 
@@ -195,7 +235,7 @@ public final class RecipeWizardGui implements AlchemicaGui {
             case RESULT_TYPE -> handleResultTypeClick(slot, event);
             case CUSTOM_PROPERTIES -> handleCustomPropertiesClick(slot, event);
             case MODIFIERS -> handleModifiersClick(slot, event);
-            default -> {}
+            case CONFIRM -> handleConfirmClick(slot, event);
         }
     }
 
@@ -287,6 +327,27 @@ public final class RecipeWizardGui implements AlchemicaGui {
             boolean current = session.modifierToggles.getOrDefault(key, true);
             session.modifierToggles.put(key, !current);
             openStep(WizardStep.MODIFIERS);
+        }
+    }
+
+    private void handleConfirmClick(int slot, InventoryClickEvent event) {
+        if (slot == 45) { back(); return; }
+        if (slot == 49) { saveRecipe(); }
+    }
+
+    private void saveRecipe() {
+        player.closeInventory();
+        try {
+            ymlWriter.write(session);
+            onRefresh.run();
+            sessionManager.remove(player.getUniqueId());
+            player.sendMessage(ChatColor.GREEN + "Recipe '" + session.key + "' saved.");
+            onCancel.run(); // return to hub
+        } catch (java.io.IOException e) {
+            player.sendMessage(ChatColor.RED
+                + "Failed to save recipe: " + e.getMessage()
+                + ". Check console for details.");
+            plugin.getLogger().severe("[Alchemica] Failed to save recipe: " + e.getMessage());
         }
     }
 
