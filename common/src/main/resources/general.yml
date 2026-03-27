@@ -21,7 +21,7 @@ nodes:
     item: fermented_spider_eye
     potion-type: weakness
     parents:
-      - water-potion
+      - awkward-potion
 
   awkward-potion:
     type: base
