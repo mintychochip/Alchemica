@@ -22,6 +22,7 @@ public final class PluginConfigurationFactory {
     configurations.put("general",factory.yaml("general.yml"));
     configurations.put("database",factory.yaml("database.yml"));
     configurations.put("legacy",factory.yaml("legacy.yml"));
+    configurations.put("potions",factory.yaml("potions.yml"));
     return new PluginConfiguration(configurations);
   }
 
