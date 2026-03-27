@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Set;
 import org.aincraft.gui.AlchemicaGui;
 import org.aincraft.gui.GuiUtils;
+import org.aincraft.wizard.LoreCaptureManager;
 import org.aincraft.wizard.RecipeKeyValidator;
 import org.aincraft.wizard.RecipeResultType;
 import org.aincraft.wizard.WizardSession;
@@ -30,19 +31,21 @@ public final class RecipeWizardGui implements AlchemicaGui {
     private final Runnable onCancel;   // returns player to hub
     /** Keys that already exist in the live registry. Used to reject duplicates in Step 1. */
     private final Set<String> existingKeys;
+    private final LoreCaptureManager loreCaptureManager;
 
     private WizardStep currentStep = WizardStep.KEY;
     private Inventory currentInventory;
 
     public RecipeWizardGui(Plugin plugin, Player player, WizardSession session,
             WizardSessionManager sessionManager, Runnable onCancel,
-            Set<String> existingKeys) {
+            Set<String> existingKeys, LoreCaptureManager loreCaptureManager) {
         this.plugin = plugin;
         this.player = player;
         this.session = session;
         this.sessionManager = sessionManager;
         this.onCancel = onCancel;
         this.existingKeys = existingKeys;
+        this.loreCaptureManager = loreCaptureManager;
         sessionManager.put(player.getUniqueId(), session);
     }
 
@@ -113,7 +116,41 @@ public final class RecipeWizardGui implements AlchemicaGui {
 
     // ---- Steps 4-6 (implemented in Tasks 14-16) ----
 
-    private void openCustomPropertiesStep() { /* Task 14 */ }
+    private void openCustomPropertiesStep() {
+        Inventory inv = Bukkit.createInventory(this, 54, buildTitle(4));
+        String nameLabel = session.name != null
+            ? "&aName: " + session.name : "&7Set Name (optional)";
+        String colorLabel = session.color != null
+            ? "&aColor: #" + session.color : "&7Set Color (optional)";
+        String loreLabel = (session.lore != null && !session.lore.isEmpty())
+            ? "&aLore: " + session.lore.size() + " line(s)" : "&7Set Lore (optional)";
+        inv.setItem(0, GuiUtils.named(Material.NAME_TAG, nameLabel));
+        inv.setItem(1, GuiUtils.named(Material.CYAN_DYE, colorLabel));
+        inv.setItem(2, GuiUtils.named(Material.WRITABLE_BOOK, loreLabel));
+        // Rows 2-4: effects list (slots 9-35)
+        for (int i = 0; i < session.effects.size() && i < 27; i++) {
+            WizardSession.EffectEntry e = session.effects.get(i);
+            inv.setItem(9 + i, GuiUtils.named(Material.BREWING_STAND,
+                "&e" + e.type.getKey().getKey(),
+                "&7Amplifier: " + e.amplifier,
+                "&7Duration: " + formatTicks(e.durationTicks),
+                "&cShift-click to remove"));
+        }
+        // Row 6: controls
+        inv.setItem(45, GuiUtils.named(Material.ARROW, "&7Back"));
+        inv.setItem(47, GuiUtils.named(Material.LIME_DYE, "&aAdd Effect"));
+        inv.setItem(49, GuiUtils.named(Material.BARRIER, "&cCancel"));
+        inv.setItem(53, GuiUtils.named(Material.ARROW, "&aNext"));
+        GuiUtils.fillRow(inv, 5);
+        currentInventory = inv;
+        player.openInventory(inv);
+    }
+
+    private String formatTicks(int ticks) {
+        int seconds = ticks / 20;
+        return (seconds / 60) + "m " + (seconds % 60) + "s";
+    }
+
     private void openModifiersStep()         { /* Task 15 */ }
     private void openConfirmStep()           { /* Task 16 */ }
 
@@ -126,6 +163,7 @@ public final class RecipeWizardGui implements AlchemicaGui {
             case KEY -> handleKeyClick(slot, event);
             case INGREDIENTS -> handleIngredientsClick(slot, event);
             case RESULT_TYPE -> handleResultTypeClick(slot, event);
+            case CUSTOM_PROPERTIES -> handleCustomPropertiesClick(slot, event);
             default -> {}
         }
     }
@@ -181,6 +219,68 @@ public final class RecipeWizardGui implements AlchemicaGui {
             session.resultType = RecipeResultType.CUSTOM;
             openStep(WizardStep.CUSTOM_PROPERTIES);
         }
+    }
+
+    private void handleCustomPropertiesClick(int slot, InventoryClickEvent event) {
+        if (slot == 45) { back(); return; }
+        if (slot == 49) { cancel(); return; }
+        if (slot == 53) { openStep(WizardStep.MODIFIERS); return; }
+        if (slot == 47) {
+            new EffectPickerGui(plugin, player, session, () -> openStep(WizardStep.CUSTOM_PROPERTIES))
+                .open();
+            return;
+        }
+        if (slot == 0) { openNameInput(); return; }
+        if (slot == 1) { openColorInput(); return; }
+        if (slot == 2) { startLoreCapture(); return; }
+        // Shift-click effect slot to remove
+        if (slot >= 9 && slot < 36 && event.isShiftClick()) {
+            int idx = slot - 9;
+            if (idx < session.effects.size()) {
+                session.effects.remove(idx);
+                openStep(WizardStep.CUSTOM_PROPERTIES);
+            }
+        }
+    }
+
+    private void openNameInput() {
+        player.closeInventory();
+        player.sendMessage("[Alchemica] Type the potion name (supports &color codes). Send blank to cancel.");
+        startChatInput(input -> {
+            if (!input.isBlank()) session.name = input;
+            openStep(WizardStep.CUSTOM_PROPERTIES);
+        });
+    }
+
+    private void openColorInput() {
+        player.closeInventory();
+        player.sendMessage("[Alchemica] Type the color as a 6-char hex (e.g. FF4500). Send blank to cancel.");
+        startChatInput(input -> {
+            if (!input.isBlank()) {
+                if (RecipeKeyValidator.isValidHex(input)) {
+                    session.color = input.toUpperCase(java.util.Locale.ENGLISH);
+                } else {
+                    player.sendMessage(ChatColor.RED + "Invalid hex color. Must be 6 hex chars, no #.");
+                }
+            }
+            openStep(WizardStep.CUSTOM_PROPERTIES);
+        });
+    }
+
+    private void startLoreCapture() {
+        loreCaptureManager.start(player, lines -> {
+            session.lore = lines.isEmpty() ? null : lines;
+            openStep(WizardStep.CUSTOM_PROPERTIES);
+        });
+    }
+
+    /**
+     * Single-line chat input: captures the first non-empty chat message.
+     * Piggy-backs on LoreCaptureManager; player sends blank line to cancel.
+     */
+    private void startChatInput(java.util.function.Consumer<String> callback) {
+        loreCaptureManager.start(player, lines ->
+            callback.accept(lines.isEmpty() ? "" : lines.get(0)));
     }
 
     private void openMaterialPicker() {
