@@ -168,14 +168,27 @@ final class RecipeRegistry {
     ItemMeta itemMeta = itemStack.getItemMeta();
     PotionMeta potionMeta = (PotionMeta) itemMeta;
 
-    if (context.potionTypeConsumer != null) {
-      context.potionTypeConsumer.accept(potionMeta);
-    }
+    context.potionTypeConsumer.accept(potionMeta);
 
     String prefix = context.potionMaterial == Material.SPLASH_POTION ? "Splash"
         : context.potionMaterial == Material.LINGERING_POTION ? "Lingering" : "";
 
-    if (context.potionkey != null) {
+    if (context.customMeta != null) {
+      potionMeta.setDisplayName(
+          ChatColor.translateAlternateColorCodes('&', context.customMeta.name));
+      if (context.customMeta.color != null) {
+        try {
+          potionMeta.setColor(context.customMeta.color);
+        } catch (NoSuchMethodError ignored) {
+          // PotionMeta.setColor() added in 1.11; skip on older servers
+        }
+      }
+      if (context.customMeta.lore != null && !context.customMeta.lore.isEmpty()) {
+        potionMeta.setLore(context.customMeta.lore.stream()
+            .map(l -> ChatColor.translateAlternateColorCodes('&', l))
+            .toList());
+      }
+    } else if (context.potionkey != null) {
       String base = createPotionName(context.potionkey);
       if (!prefix.isEmpty()) {
         base = prefix + " " + base;

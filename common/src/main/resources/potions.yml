@@ -1,0 +1,25 @@
+# Custom potions for Alchemica.
+# Reference these in general.yml recipes using:
+#   result: alchemica:<key>
+#
+# Supported properties:
+#   name    - Display name (supports & color codes)
+#   color   - Hex RGB color for the potion bottle, e.g. FF4500  (1.11+ only)
+#   lore    - List of lore lines (supports & color codes)
+#   effects - List of {type, duration (ticks), amplifier} entries
+#
+# Effects added AFTER this base (redstone, glowstone, gunpowder, etc.) still apply normally.
+
+example-potion:
+  name: "&6Example Potion"
+  color: "FFA500"
+  lore:
+    - "&7An example of a custom potion."
+    - "&7Add redstone to extend effects."
+  effects:
+    - type: speed
+      duration: 3600
+      amplifier: 1
+    - type: regeneration
+      duration: 1200
+      amplifier: 0

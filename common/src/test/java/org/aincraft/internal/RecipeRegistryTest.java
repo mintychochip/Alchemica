@@ -1,8 +1,9 @@
 package org.aincraft.internal;
 
-import be.seeseemelk.mockbukkit.MockBukkit;
-import be.seeseemelk.mockbukkit.ServerMock;
-import be.seeseemelk.mockbukkit.entity.PlayerMock;
+import org.mockbukkit.mockbukkit.MockBukkit;
+import org.mockbukkit.mockbukkit.ServerMock;
+import org.mockbukkit.mockbukkit.entity.PlayerMock;
+import org.mockbukkit.mockbukkit.plugin.PluginMock;
 import com.google.common.primitives.UnsignedInteger;
 import java.util.Collections;
 import java.util.List;
@@ -19,6 +20,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -46,15 +49,17 @@ class RecipeRegistryTest {
 
     private ServerMock server;
     private PlayerMock player;
+    private PluginMock plugin;
 
     @BeforeEach
     void setUp() {
         server = MockBukkit.mock();
+        plugin = MockBukkit.createMockPlugin();
         player = server.addPlayer();
         // Grant the standard permissions used by base recipe, effect and modifier
-        player.addAttachment(MockBukkit.createMockPlugin(), PERM_BASE, true);
-        player.addAttachment(MockBukkit.createMockPlugin(), PERM_EFFECT, true);
-        player.addAttachment(MockBukkit.createMockPlugin(), PERM_MOD, true);
+        player.addAttachment(plugin, PERM_BASE, true);
+        player.addAttachment(plugin, PERM_EFFECT, true);
+        player.addAttachment(plugin, PERM_MOD, true);
     }
 
     @AfterEach
@@ -106,6 +111,11 @@ class RecipeRegistryTest {
             @Override public void setEffectCount(UnsignedInteger v) { effects = v; }
             @Override public void setModifierCount(UnsignedInteger v) { mods = v; }
         };
+    }
+
+    /** Convenience: settings with 3 effect slots and 3 modifier slots for the given player. */
+    private static IPlayerSettings settingsFor(PlayerMock player) {
+        return settings(player, 3, 3);
     }
 
     // ------------------------------------------------------------------
@@ -438,5 +448,83 @@ class RecipeRegistryTest {
 
         // The long recipe [A, B] should have been chosen over short [A]
         assertEquals(Status.SUCCESS, result.getStatus());
+    }
+
+    // ------------------------------------------------------------------
+    // RawDurationStage tests
+    // ------------------------------------------------------------------
+
+    @Test
+    void rawDurationStage_returnsTicks() {
+        RawDurationStage stage = new RawDurationStage(3600);
+        assertEquals(3600, stage.getTicks());
+        assertFalse(stage.hasNext());
+        assertFalse(stage.hasPrevious());
+    }
+
+    // ------------------------------------------------------------------
+    // search() — CustomMeta tests
+    // ------------------------------------------------------------------
+
+    @Test
+    void search_customPotion_hasCorrectDisplayName() {
+        NamespacedKey ingredientKey = NamespacedKey.minecraft("nether_wart");
+        CauldronIngredient ingredient = new CauldronIngredient(ingredientKey);
+
+        PotionResult.PotionContext.CustomMeta meta =
+            new PotionResult.PotionContext.CustomMeta(
+                "&cFire Potion",
+                org.bukkit.Color.fromRGB(0xFF, 0x45, 0x00),
+                java.util.List.of("&7Burns forever")
+            );
+
+        RecipeRegistry.BaseRecipe recipe = new RecipeRegistry.BaseRecipe(
+            java.util.List.of(ingredient),
+            ctx -> ctx.customMeta = meta,
+            "alchemica.test"
+        );
+
+        RecipeRegistry registry = new RecipeRegistry(java.util.List.of(recipe), java.util.List.of(), java.util.List.of());
+        server.addPlayer("tester");
+        PlayerMock player = (PlayerMock) server.getPlayerExact("tester");
+        player.addAttachment(plugin, "alchemica.test", true);
+
+        IPlayerSettings settings = settingsFor(player);
+        IPotionResult result = registry.search(settings, java.util.List.of(ingredient));
+
+        assertEquals(IPotionResult.Status.SUCCESS, result.getStatus());
+        assertNotNull(result.getStack());
+        String expectedName = org.bukkit.ChatColor.translateAlternateColorCodes('&', "&cFire Potion");
+        assertEquals(expectedName, result.getStack().getItemMeta().getDisplayName());
+    }
+
+    @Test
+    void search_customPotion_hasLore() {
+        NamespacedKey ingredientKey = NamespacedKey.minecraft("nether_wart");
+        CauldronIngredient ingredient = new CauldronIngredient(ingredientKey);
+
+        PotionResult.PotionContext.CustomMeta meta =
+            new PotionResult.PotionContext.CustomMeta(
+                "Test Potion", null, java.util.List.of("&7Line one", "&7Line two")
+            );
+
+        RecipeRegistry.BaseRecipe recipe = new RecipeRegistry.BaseRecipe(
+            java.util.List.of(ingredient),
+            ctx -> ctx.customMeta = meta,
+            "alchemica.test"
+        );
+
+        RecipeRegistry registry = new RecipeRegistry(java.util.List.of(recipe), java.util.List.of(), java.util.List.of());
+        server.addPlayer("tester2");
+        PlayerMock player = (PlayerMock) server.getPlayerExact("tester2");
+        player.addAttachment(plugin, "alchemica.test", true);
+
+        IPotionResult result = registry.search(settingsFor(player), java.util.List.of(ingredient));
+
+        assertEquals(IPotionResult.Status.SUCCESS, result.getStatus());
+        java.util.List<String> lore = result.getStack().getItemMeta().getLore();
+        assertNotNull(lore);
+        assertEquals(2, lore.size());
+        assertTrue(lore.get(0).contains("Line one"));
     }
 }

@@ -102,8 +102,9 @@ final class Internal {
 
     IDao<IPlayerSettings, UUID> playerSettingsDao = new PlayerSettingsDao(database);
 
+    IYamlConfiguration potions = config.get("potions");
     RecipeRegistry trie = new RecipeRegistryFactory(
-        new PotionEffectMetaFactory(durationMap), general, potionProvider).create();
+        new PotionEffectMetaFactory(durationMap), general, potions, potionProvider).create();
 
     Gson gson = new GsonBuilder()
         .registerTypeAdapter(NamespacedKey.class, new KeyAdapter())

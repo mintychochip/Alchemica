@@ -1,9 +1,11 @@
 package org.aincraft.internal;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 import org.aincraft.IPotionResult;
+import org.bukkit.Color;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.inventory.ItemStack;
@@ -43,6 +45,21 @@ final class PotionResult implements IPotionResult {
 
   @ApiStatus.Internal
   static final class PotionContext {
+
+    static final class CustomMeta {
+      final String name;
+      final Color color;     // nullable
+      final List<String> lore; // nullable
+
+      CustomMeta(String name, Color color, List<String> lore) {
+        this.name = name;
+        this.color = color;
+        this.lore = lore;
+      }
+    }
+
+    CustomMeta customMeta = null;
+
     NamespacedKey potionkey = null;
 
     Material potionMaterial = Material.POTION;

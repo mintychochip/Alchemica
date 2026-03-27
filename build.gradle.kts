@@ -18,7 +18,7 @@ allprojects {
 
     plugins.withType<JavaPlugin> {
         extensions.configure<JavaPluginExtension> {
-            toolchain.languageVersion.set(JavaLanguageVersion.of(17)) // ✅ force Java 21 everywhere
+            toolchain.languageVersion.set(JavaLanguageVersion.of(21)) // force Java 21 everywhere
         }
     }
 

@@ -147,6 +147,12 @@ recipes:
       - breeze_rod
     potion-type: wind_charged
 
+  example-potion-recipe:
+    ingredients:
+      - nether_wart
+      - blaze_rod
+    result: alchemica:example-potion
+
 effects:
   speed-effect:
     item: sugar

@@ -4,6 +4,7 @@ import com.google.common.base.Preconditions;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.function.Consumer;
 import org.aincraft.CauldronIngredient;
 import org.aincraft.IConfiguration.IYamlConfiguration;
@@ -27,12 +28,14 @@ final class RecipeRegistryFactory {
 
   private final PotionEffectMetaFactory metaFactory;
   private final IYamlConfiguration configuration;
+  private final IYamlConfiguration potionsConfiguration;
   private final IPotionProvider potionProvider;
 
   RecipeRegistryFactory(PotionEffectMetaFactory metaFactory, IYamlConfiguration configuration,
-      IPotionProvider potionProvider) {
+      IYamlConfiguration potionsConfiguration, IPotionProvider potionProvider) {
     this.metaFactory = metaFactory;
     this.configuration = configuration;
+    this.potionsConfiguration = potionsConfiguration;
     this.potionProvider = potionProvider;
   }
 
@@ -41,8 +44,8 @@ final class RecipeRegistryFactory {
     List<RegistryStep> effects = new ArrayList<>();
     List<RegistryStep> modifiers = new ArrayList<>();
 
-    if (configuration.contains("recipes")) {
-      ConfigurationSection recipesSection = configuration.getConfigurationSection("recipes");
+    ConfigurationSection recipesSection = configuration.getConfigurationSection("recipes");
+    if (recipesSection != null) {
       for (String key : recipesSection.getKeys(false)) {
         ConfigurationSection section = recipesSection.getConfigurationSection(key);
         if (section == null) {
@@ -55,8 +58,8 @@ final class RecipeRegistryFactory {
       }
     }
 
-    if (configuration.contains("effects")) {
-      ConfigurationSection effectsSection = configuration.getConfigurationSection("effects");
+    ConfigurationSection effectsSection = configuration.getConfigurationSection("effects");
+    if (effectsSection != null) {
       for (String key : effectsSection.getKeys(false)) {
         ConfigurationSection section = effectsSection.getConfigurationSection(key);
         if (section == null) {
@@ -69,8 +72,8 @@ final class RecipeRegistryFactory {
       }
     }
 
-    if (configuration.contains("modifiers")) {
-      ConfigurationSection modifiersSection = configuration.getConfigurationSection("modifiers");
+    ConfigurationSection modifiersSection = configuration.getConfigurationSection("modifiers");
+    if (modifiersSection != null) {
       for (String key : modifiersSection.getKeys(false)) {
         ConfigurationSection section = modifiersSection.getConfigurationSection(key);
         if (section == null) {
@@ -88,23 +91,89 @@ final class RecipeRegistryFactory {
 
   private BaseRecipe createBaseRecipe(String key, ConfigurationSection section) {
     Preconditions.checkArgument(section.contains("ingredients"), "missing ingredients");
-    Preconditions.checkArgument(section.contains("potion-type"), "missing potion-type");
 
     List<String> ingredientStrings = section.getStringList("ingredients");
+    Preconditions.checkArgument(!ingredientStrings.isEmpty(), "ingredients list must not be empty");
     List<CauldronIngredient> ingredients = new ArrayList<>();
     for (String itemString : ingredientStrings) {
       ingredients.add(new CauldronIngredient(Brew.createKey(itemString)));
     }
 
-    String potionTypeString = section.getString("potion-type");
-    PotionType potionType = potionProvider.getType(NamespacedKey.minecraft(potionTypeString));
-    Consumer<PotionContext> consumer = buildBaseConsumer(potionType);
+    Consumer<PotionContext> consumer;
+    if (section.contains("result")) {
+      consumer = createCustomPotionConsumer(section.getString("result"));
+    } else {
+      Preconditions.checkArgument(section.contains("potion-type"), "missing potion-type");
+      String potionTypeString = section.getString("potion-type");
+      PotionType potionType = potionProvider.getType(NamespacedKey.minecraft(potionTypeString));
+      consumer = buildBaseConsumer(potionType);
+    }
 
     String permission = section.getString("permission",
         "alchemica." + key.toLowerCase(Locale.ENGLISH));
     Bukkit.getPluginManager().addPermission(new Permission(permission, PermissionDefault.TRUE));
 
     return new BaseRecipe(ingredients, consumer, permission);
+  }
+
+  private Consumer<PotionContext> createCustomPotionConsumer(String resultKeyString) {
+    NamespacedKey resultKey = Brew.createKey(resultKeyString);
+    String sectionKey = resultKey.getKey();
+    ConfigurationSection section = potionsConfiguration.getConfigurationSection(sectionKey);
+    Preconditions.checkArgument(section != null,
+        "custom potion not found in potions.yml: " + resultKeyString);
+
+    String name = section.getString("name", sectionKey);
+    org.bukkit.Color color = parseColor(section.getString("color", null));
+    List<String> lore = section.getStringList("lore");
+    List<String> finalLore = lore.isEmpty() ? null : lore;
+
+    List<PotionEffectType> types = new ArrayList<>();
+    List<Integer> durations = new ArrayList<>();
+    List<Integer> amplifiers = new ArrayList<>();
+
+    for (Map<?, ?> effectMap : section.getMapList("effects")) {
+      String typeString = (String) effectMap.get("type");
+      if (typeString == null) {
+        Bukkit.getLogger().warning("[Alchemica] Effect entry in potions.yml is missing 'type' field, skipping");
+        continue;
+      }
+      int duration = effectMap.containsKey("duration")
+          ? ((Number) effectMap.get("duration")).intValue() : 3600;
+      int amplifier = effectMap.containsKey("amplifier")
+          ? ((Number) effectMap.get("amplifier")).intValue() : 0;
+      try {
+        PotionEffectType type = potionProvider.getEffectType(NamespacedKey.minecraft(typeString));
+        types.add(type);
+        durations.add(duration);
+        amplifiers.add(amplifier);
+      } catch (IllegalArgumentException e) {
+        Bukkit.getLogger().warning("[Alchemica] Unknown effect type in potions.yml: " + typeString);
+      }
+    }
+
+    return context -> {
+      context.customMeta = new PotionResult.PotionContext.CustomMeta(name, color, finalLore);
+      for (int i = 0; i < types.size(); i++) {
+        PotionEffectType type = types.get(i);
+        PotionEffectMeta meta = new PotionEffectMeta(
+            new RawDurationStage(durations.get(i)), amplifiers.get(i), false, true);
+        context.potionMetaMap.put(type, meta);
+      }
+    };
+  }
+
+  private static org.bukkit.Color parseColor(String hex) {
+    if (hex == null || hex.isEmpty()) {
+      return null;
+    }
+    try {
+      int rgb = Integer.parseInt(hex.replace("#", ""), 16);
+      return org.bukkit.Color.fromRGB((rgb >> 16) & 0xFF, (rgb >> 8) & 0xFF, rgb & 0xFF);
+    } catch (NumberFormatException e) {
+      Bukkit.getLogger().warning("[Alchemica] Invalid color in potions.yml: " + hex);
+      return null;
+    }
   }
 
   private Consumer<PotionContext> buildBaseConsumer(PotionType potionType) {

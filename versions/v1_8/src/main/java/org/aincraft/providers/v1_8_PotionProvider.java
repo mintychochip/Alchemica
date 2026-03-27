@@ -15,14 +15,6 @@ import org.bukkit.potion.PotionType;
 public final class v1_8_PotionProvider extends LegacyPotionProvider {
 
   @Override
-  public void setBasePotionType(PotionMeta meta, PotionType type) {
-    PotionEffectType effectType = type.getEffectType();
-    if (effectType != null) {
-      meta.setMainEffect(effectType);
-    }
-  }
-
-  @Override
   public List<PotionEffect> getEffects(PotionType type) {
     List<PotionEffect> effects = new ArrayList<>();
     PotionEffectType effectType = type.getEffectType();
@@ -31,5 +23,13 @@ public final class v1_8_PotionProvider extends LegacyPotionProvider {
       effects.add(new PotionEffect(effectType, 3600, 0));
     }
     return effects;
+  }
+
+  @Override
+  public void setBasePotionType(PotionMeta meta, PotionType type) {
+    PotionEffectType effectType = type.getEffectType();
+    if (effectType != null) {
+      meta.setMainEffect(effectType);
+    }
   }
 }

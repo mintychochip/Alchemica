@@ -17,7 +17,7 @@ dependencies {
     implementation(project(":versions:v1_13_R0")) {
         exclude(group = "org.spigotmc", module = "spigot-api")
     }
-    compileOnly("org.spigotmc:spigot-api:1.12.2-R0.1-SNAPSHOT") // or lowest supported
+    compileOnly("io.papermc.paper:paper-api:1.21.1-R0.1-SNAPSHOT")
     compileOnly("org.jetbrains:annotations:24.1.0")
     testImplementation("org.junit.jupiter:junit-jupiter:5.11.3")
     testImplementation("com.google.guava:guava:33.3.1-jre")
@@ -25,14 +25,37 @@ dependencies {
 }
 
 
+// Allow resolving paper-api/mockbukkit (requires JVM 21) on compile/test classpaths
+// even when the global toolchain is configured for 17. Bytecode still targets 17/21.
+listOf("compileClasspath", "testCompileClasspath", "testRuntimeClasspath").forEach { configName ->
+    configurations.named(configName) {
+        attributes {
+            attribute(
+                org.gradle.api.attributes.java.TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE,
+                21
+            )
+        }
+    }
+}
+
 tasks.withType<Test>().configureEach {
     useJUnitPlatform()
     // MockBukkit requires Java 17+ — override the global release=8 for test compilation
     jvmArgs("-Xmx512m")
 }
 
-tasks.named<JavaCompile>("compileTestJava") {
+tasks.named<JavaCompile>("compileJava") {
     options.release.set(17)
+    javaCompiler.set(javaToolchains.compilerFor {
+        languageVersion.set(JavaLanguageVersion.of(21))
+    })
+}
+
+tasks.named<JavaCompile>("compileTestJava") {
+    options.release.set(21)
+    javaCompiler.set(javaToolchains.compilerFor {
+        languageVersion.set(JavaLanguageVersion.of(21))
+    })
 }
 
 tasks.withType<Jar>().configureEach {

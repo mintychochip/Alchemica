@@ -12,7 +12,7 @@ import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.potion.PotionType;
 
-public final class LegacyPotionProvider extends PotionProvider {
+public class LegacyPotionProvider extends PotionProvider {
 
   private static final BiMap<PotionEffectType, String> LEGACY_POTION_EFFECT_MAP;
   private static final BiMap<PotionType, String> LEGACY_POTION_MAP;
@@ -39,24 +39,12 @@ public final class LegacyPotionProvider extends PotionProvider {
 
   @Override
   public Iterable<PotionType> getPotionTypes() {
-    List<PotionType> types = new ArrayList<>();
-    for (PotionType type : PotionType.values()) {
-      if (type != null) {
-        types.add(type);
-      }
-    }
-    return types;
+    return java.util.Arrays.asList(PotionType.values());
   }
 
   @Override
   public Iterable<PotionEffectType> getPotionEffectTypes() {
-    List<PotionEffectType> types = new ArrayList<>();
-    for (PotionEffectType type : PotionEffectType.values()) {
-      if (type != null) {
-        types.add(type);
-      }
-    }
-    return types;
+    return java.util.Arrays.asList(PotionEffectType.values());
   }
 
   @Override
@@ -69,7 +57,7 @@ public final class LegacyPotionProvider extends PotionProvider {
   @Override
   public NamespacedKey getKey(PotionEffectType effectType) {
     String name = LEGACY_POTION_EFFECT_MAP.getOrDefault(effectType,
-        effectType.getName().toLowerCase());
+        effectType.getName().toLowerCase(Locale.ENGLISH));
     return NamespacedKey.minecraft(name);
   }
 

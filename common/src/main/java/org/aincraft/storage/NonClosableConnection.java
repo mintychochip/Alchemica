@@ -42,7 +42,9 @@ final class NonClosableConnection implements Connection {
   @Override
   public boolean isWrapperFor(Class<?> iface) throws SQLException {
     return iface.isInstance(this.delegate) || this.delegate.isWrapperFor(iface);
-  }  @Override
+  }
+
+  @Override
   public final void close() throws SQLException {
     // do nothing
   }
