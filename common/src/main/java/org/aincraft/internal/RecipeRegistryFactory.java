@@ -89,7 +89,7 @@ final class RecipeRegistryFactory {
       }
     }
 
-    return new RecipeRegistry(recipes, effects, modifiers);
+    return new RecipeRegistry(recipes, effects, modifiers, new BrewAPIImpl());
   }
 
   private BaseRecipe createBaseRecipe(String key, ConfigurationSection section) {
