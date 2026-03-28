@@ -42,7 +42,7 @@ final class RecipeRegistryFactory {
     this.potionProvider = potionProvider;
   }
 
-  RecipeRegistry create() {
+  RecipeRegistry create(BrewAPIImpl brewAPI) {
     List<BaseRecipe> recipes = new ArrayList<>();
     List<RegistryStep> effects = new ArrayList<>();
     List<RegistryStep> modifiers = new ArrayList<>();
@@ -89,7 +89,7 @@ final class RecipeRegistryFactory {
       }
     }
 
-    return new RecipeRegistry(recipes, effects, modifiers, new BrewAPIImpl());
+    return new RecipeRegistry(recipes, effects, modifiers, brewAPI);
   }
 
   private BaseRecipe createBaseRecipe(String key, ConfigurationSection section) {

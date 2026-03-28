@@ -98,7 +98,7 @@ final class Internal {
     return database;
   }
 
-  public static Internal create(Brew brew) {
+  public static Internal create(Brew brew, BrewAPIImpl brewAPI) {
     Plugin plugin = brew.getPlugin();
     IPluginConfiguration config = brew.getPluginConfiguration();
     VersionProviderFactory versionProviderFactory = brew.getVersionProviderFactory();
@@ -122,7 +122,8 @@ final class Internal {
 
     IYamlConfiguration potions = config.get("potions");
     RecipeRegistry trie = new RecipeRegistryFactory(
-        new PotionEffectMetaFactory(durationMap), general, potions, potionProvider).create();
+        new PotionEffectMetaFactory(durationMap), general, potions, potionProvider)
+        .create(brewAPI);
 
     Gson gson = new GsonBuilder()
         .registerTypeAdapter(NamespacedKey.class, new KeyAdapter())
