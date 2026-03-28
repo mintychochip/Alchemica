@@ -47,13 +47,18 @@ public final class CustomRecipe {
 
     public Builder ingredients(String... keys) {
       for (String keyStr : keys) {
-        NamespacedKey nk = NamespacedKey.fromString(keyStr);
-        if (nk == null) {
-          throw new IllegalArgumentException("Invalid ingredient key: " + keyStr);
-        }
+        NamespacedKey nk = parseNamespacedKey(keyStr);
         ingredients.add(new CauldronIngredient(nk));
       }
       return this;
+    }
+
+    private static NamespacedKey parseNamespacedKey(String keyStr) {
+      String[] parts = keyStr.split(":", 2);
+      if (parts.length != 2) {
+        throw new IllegalArgumentException("Invalid namespaced key format: " + keyStr + " (expected 'namespace:key')");
+      }
+      return new NamespacedKey(parts[0], parts[1]);
     }
 
     public Builder result(Function<BrewContext, ItemStack> fn) {
