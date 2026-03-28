@@ -16,6 +16,8 @@ recipes:
     ingredients:
       - fermented_spider_eye
     potion-type: weakness
+    parents:
+      - awkward-potion
 
   awkward-potion:
     ingredients:
