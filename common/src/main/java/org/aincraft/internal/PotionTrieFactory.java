@@ -122,7 +122,7 @@ final class PotionTrieFactory {
         nodeSection.getInt("amount", 1));
     @NotNull String permissionString =
         "alchemica." + nodeSection.getName().toLowerCase(Locale.ENGLISH);
-    Bukkit.getPluginManager().addPermission(new Permission(permissionString, PermissionDefault.OP));
+    Bukkit.getPluginManager().addPermission(new Permission(permissionString, PermissionDefault.TRUE));
     return new Node(nodeType,
         ingredient,
         consumer, permissionString);
