@@ -1,7 +1,9 @@
 package org.aincraft.internal;
 
 import com.google.common.base.Preconditions;
+import org.aincraft.AlchemicaAPI;
 import org.aincraft.IBrew;
+import org.aincraft.IBrewAPI;
 import org.aincraft.IPluginConfiguration;
 import org.aincraft.IStorage;
 import org.aincraft.command.BrewCommand;
@@ -20,13 +22,15 @@ public final class Brew implements IBrew {
   static Internal internal;
   private final IPluginConfiguration pluginConfiguration;
   private final VersionProviderFactory versionProviderFactory;
+  private BrewAPIImpl brewAPI;
 
   public Brew(Plugin plugin,
       IPluginConfiguration pluginConfiguration, VersionProviderFactory versionProviderFactory) {
     this.plugin = plugin;
     this.pluginConfiguration = pluginConfiguration;
     this.versionProviderFactory = versionProviderFactory;
-    internal = Internal.create(this);
+    this.brewAPI = new BrewAPIImpl();
+    internal = Internal.create(this, brewAPI);
   }
 
   public VersionProviderFactory getVersionProviderFactory() {
@@ -46,7 +50,7 @@ public final class Brew implements IBrew {
       throw new RuntimeException(e);
     }
     pluginConfiguration.reload();
-    internal = Internal.create(this);
+    internal = Internal.create(this, brewAPI);
   }
 
   @Override
@@ -79,10 +83,15 @@ public final class Brew implements IBrew {
         internal.wizardSessionManager.remove(e.getPlayer().getUniqueId());
       }
     }, plugin);
+    AlchemicaAPI.setInstance(brewAPI);
+    plugin.getServer().getServicesManager().register(
+        IBrewAPI.class, brewAPI, plugin, org.bukkit.plugin.ServicePriority.Normal);
   }
 
   @Override
   public void disable() {
+    plugin.getServer().getServicesManager().unregisterAll(plugin);
+    AlchemicaAPI.setInstance(null);
     IStorage database = internal.getDatabase();
     try {
       database.shutdown();
