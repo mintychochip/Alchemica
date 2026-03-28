@@ -7,7 +7,7 @@ plugins {
 
 allprojects {
     group = "org.aincraft"
-    version = "1.0.4"
+    version = "1.0.5"
 
     repositories {
         gradlePluginPortal()

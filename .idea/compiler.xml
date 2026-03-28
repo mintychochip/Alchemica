@@ -2,10 +2,25 @@
 <project version="4">
   <component name="CompilerConfiguration">
     <bytecodeTargetLevel target="17">
+      <module name="Brew.api.main" target="1.8" />
+      <module name="Brew.api.test" target="1.8" />
       <module name="Brew.bridge.main" target="1.8" />
       <module name="Brew.bridge.test" target="1.8" />
+      <module name="Brew.common.main" target="1.8" />
+      <module name="Brew.common.test" target="1.8" />
+      <module name="Brew.main" target="1.8" />
+      <module name="Brew.test" target="1.8" />
+      <module name="Brew.versions.base" target="21" />
+      <module name="Brew.versions.base.main" target="1.8" />
+      <module name="Brew.versions.base.test" target="1.8" />
       <module name="Brew.versions.bridge.main" target="1.8" />
       <module name="Brew.versions.bridge.test" target="1.8" />
+      <module name="Brew.versions.main" target="1.8" />
+      <module name="Brew.versions.test" target="1.8" />
+      <module name="Brew.versions.v1_12_R1.main" target="1.8" />
+      <module name="Brew.versions.v1_12_R1.test" target="1.8" />
+      <module name="Brew.versions.v1_13_R0.main" target="1.8" />
+      <module name="Brew.versions.v1_13_R0.test" target="1.8" />
       <module name="Brew.versions.v1_17_R0.main" target="1.8" />
       <module name="Brew.versions.v1_17_R0.test" target="1.8" />
       <module name="Brew.versions.v1_21_R1" target="21" />

@@ -39,6 +39,9 @@ final class PotionDurationMapFactory implements
       NamespacedKey key = potionProvider.getKey(effectType);
       String effectString = key.getKey();
       String durationStageString = durationSection.getString(effectString);
+      if (durationStageString == null) {
+        continue;
+      }
       NamespacedKey durationStageKey = new NamespacedKey(plugin, durationStageString);
       IDurationStage stage = durationStages.get(durationStageKey);
       durationMap.put(effectType, stage);
