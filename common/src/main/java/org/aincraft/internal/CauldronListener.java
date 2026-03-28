@@ -1,6 +1,7 @@
 package org.aincraft.internal;
 
 import com.google.common.primitives.UnsignedInteger;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
@@ -15,6 +16,8 @@ import org.aincraft.dao.IPlayerSettings;
 import org.aincraft.providers.ICauldronProvider;
 import org.aincraft.providers.IVersionProviders;
 import org.aincraft.providers.VersionProviderFactory;
+import org.aincraft.event.BrewCompleteEvent;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
@@ -210,10 +213,22 @@ final class CauldronListener implements Listener {
     if (result.getStatus() == Status.SUCCESS) {
       ItemStack stack = result.getStack();
       if (stack != null) {
-        HashMap<Integer, ItemStack> cannotFit = inventory.addItem(stack);
-        if (!cannotFit.isEmpty()) {
-          cannotFit.values()
-              .forEach(s -> location.getWorld().dropItemNaturally(player.getLocation(), s));
+        BrewCompleteEvent brewEvent = new BrewCompleteEvent(
+            player,
+            new ArrayList<>(cauldron.getIngredients()),
+            stack,
+            result.getItemKey()
+        );
+        Bukkit.getPluginManager().callEvent(brewEvent);
+        // Both conditions checked: isCancelled() is the explicit cancel path;
+        // getResult() == null is the silent-suppress path (a handler called setResult(null)).
+        if (!brewEvent.isCancelled() && brewEvent.getResult() != null) {
+          ItemStack finalStack = brewEvent.getResult();
+          HashMap<Integer, ItemStack> cannotFit = inventory.addItem(finalStack);
+          if (!cannotFit.isEmpty()) {
+            cannotFit.values()
+                .forEach(s -> location.getWorld().dropItemNaturally(player.getLocation(), s));
+          }
         }
       }
     }
