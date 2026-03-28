@@ -1,5 +1,6 @@
 package org.aincraft.internal;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import org.aincraft.IPotionResult;
 import org.aincraft.IPotionResult.Status;
@@ -8,6 +9,7 @@ import org.aincraft.dao.ICauldron;
 import org.aincraft.dao.IDao;
 import org.aincraft.dao.IPlayerSettings;
 import org.aincraft.providers.ICauldronProvider;
+import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -15,6 +17,7 @@ import org.bukkit.Sound;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
+import org.aincraft.event.BrewCompleteEvent;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -94,11 +97,22 @@ final class CauldronLevelListener implements Listener {
             }
             if (result.getStatus() == Status.SUCCESS) {
                 ItemStack stack = result.getStack();
-                assert stack != null;
-                HashMap<Integer, ItemStack> cannotFit = inventory.addItem(stack);
-                if (!cannotFit.isEmpty()) {
-                    cannotFit.values().forEach(
-                            s -> location.getWorld().dropItemNaturally(player.getLocation(), s));
+                BrewCompleteEvent brewEvent = new BrewCompleteEvent(
+                    player,
+                    new ArrayList<>(cauldron.getIngredients()),
+                    stack,
+                    result.getItemKey()
+                );
+                Bukkit.getPluginManager().callEvent(brewEvent);
+                // Both conditions checked: isCancelled() is the explicit cancel path;
+                // getResult() == null is the silent-suppress path (a handler called setResult(null)).
+                if (!brewEvent.isCancelled() && brewEvent.getResult() != null) {
+                    ItemStack finalStack = brewEvent.getResult();
+                    HashMap<Integer, ItemStack> cannotFit = inventory.addItem(finalStack);
+                    if (!cannotFit.isEmpty()) {
+                        cannotFit.values().forEach(
+                                s -> location.getWorld().dropItemNaturally(player.getLocation(), s));
+                    }
                 }
             }
         }
