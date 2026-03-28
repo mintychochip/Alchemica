@@ -54,11 +54,18 @@ public final class CustomRecipe {
     }
 
     private static NamespacedKey parseNamespacedKey(String keyStr) {
-      String[] parts = keyStr.split(":", 2);
-      if (parts.length != 2) {
-        throw new IllegalArgumentException("Invalid namespaced key format: " + keyStr + " (expected 'namespace:key')");
+      if (keyStr == null) {
+        throw new IllegalArgumentException("Invalid ingredient key: null");
       }
-      return new NamespacedKey(parts[0], parts[1]);
+      String[] parts = keyStr.split(":", 2);
+      try {
+        if (parts.length == 1) {
+          return NamespacedKey.minecraft(parts[0]);
+        }
+        return new NamespacedKey(parts[0], parts[1]);
+      } catch (IllegalArgumentException e) {
+        throw new IllegalArgumentException("Invalid ingredient key: " + keyStr, e);
+      }
     }
 
     public Builder result(Function<BrewContext, ItemStack> fn) {
