@@ -10,6 +10,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import org.aincraft.CauldronIngredient;
+import org.aincraft.CustomRecipe;
+import org.bukkit.inventory.ItemStack;
 import org.aincraft.IPotionResult;
 import org.aincraft.IPotionResult.Status;
 import org.aincraft.dao.IPlayerSettings;
@@ -22,6 +24,7 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -138,7 +141,8 @@ class RecipeRegistryTest {
         RecipeRegistry registry = new RecipeRegistry(
                 List.of(recipeA, recipeB),
                 Collections.emptyList(),
-                Collections.emptyList()
+                Collections.emptyList(),
+                new BrewAPIImpl()
         );
 
         Set<CauldronIngredient> suggestions = registry.getSuggestions(Collections.emptyList());
@@ -165,7 +169,8 @@ class RecipeRegistryTest {
         RecipeRegistry registry = new RecipeRegistry(
                 List.of(recipeAB, recipeC),
                 Collections.emptyList(),
-                Collections.emptyList()
+                Collections.emptyList(),
+                new BrewAPIImpl()
         );
 
         // Current input is [A] — should suggest B (next in [A,B]) but NOT C
@@ -192,7 +197,8 @@ class RecipeRegistryTest {
         RecipeRegistry registry = new RecipeRegistry(
                 List.of(recipe),
                 List.of(eff),
-                List.of(modif)
+                List.of(modif),
+                new BrewAPIImpl()
         );
 
         // Ingredients exactly match the base recipe [A]
@@ -214,7 +220,8 @@ class RecipeRegistryTest {
         RecipeRegistry registry = new RecipeRegistry(
                 Collections.emptyList(),
                 Collections.emptyList(),
-                Collections.emptyList()
+                Collections.emptyList(),
+                new BrewAPIImpl()
         );
 
         IPotionResult result = registry.search(
@@ -236,7 +243,8 @@ class RecipeRegistryTest {
         RecipeRegistry registry = new RecipeRegistry(
                 List.of(recipe),
                 Collections.emptyList(),
-                Collections.emptyList()
+                Collections.emptyList(),
+                new BrewAPIImpl()
         );
 
         // KEY_B does not match the recipe which expects KEY_A
@@ -259,7 +267,8 @@ class RecipeRegistryTest {
         RecipeRegistry registry = new RecipeRegistry(
                 List.of(baseRecipe(List.of(a), PERM_BASE)),
                 Collections.emptyList(),
-                Collections.emptyList()
+                Collections.emptyList(),
+                new BrewAPIImpl()
         );
 
         // [A, UNKNOWN] — A matches, UNKNOWN is not an effect or modifier
@@ -285,7 +294,8 @@ class RecipeRegistryTest {
         RecipeRegistry registry = new RecipeRegistry(
                 List.of(baseRecipe(List.of(a), PERM_BASE)),
                 Collections.emptyList(),
-                Collections.emptyList()
+                Collections.emptyList(),
+                new BrewAPIImpl()
         );
 
         IPotionResult result = registry.search(
@@ -307,7 +317,8 @@ class RecipeRegistryTest {
         RecipeRegistry registry = new RecipeRegistry(
                 List.of(baseRecipe(List.of(a), PERM_BASE)),
                 List.of(step(effect, PERM_EFFECT)),
-                Collections.emptyList()
+                Collections.emptyList(),
+                new BrewAPIImpl()
         );
 
         IPotionResult result = registry.search(
@@ -329,7 +340,8 @@ class RecipeRegistryTest {
         RecipeRegistry registry = new RecipeRegistry(
                 List.of(baseRecipe(List.of(a), PERM_BASE)),
                 Collections.emptyList(),
-                List.of(step(mod, PERM_MOD))
+                List.of(step(mod, PERM_MOD)),
+                new BrewAPIImpl()
         );
 
         IPotionResult result = registry.search(
@@ -355,7 +367,8 @@ class RecipeRegistryTest {
         RecipeRegistry registry = new RecipeRegistry(
                 List.of(baseRecipe(List.of(a), PERM_DENIED)),
                 Collections.emptyList(),
-                Collections.emptyList()
+                Collections.emptyList(),
+                new BrewAPIImpl()
         );
 
         // player does NOT have PERM_DENIED
@@ -382,7 +395,8 @@ class RecipeRegistryTest {
         RecipeRegistry registry = new RecipeRegistry(
                 List.of(baseRecipe(List.of(a), PERM_BASE)),
                 List.of(step(effect, PERM_EFFECT)),
-                Collections.emptyList()
+                Collections.emptyList(),
+                new BrewAPIImpl()
         );
 
         // effectCount = 0, so adding one effect makes it go to -1
@@ -405,7 +419,8 @@ class RecipeRegistryTest {
         RecipeRegistry registry = new RecipeRegistry(
                 List.of(baseRecipe(List.of(a), PERM_BASE)),
                 Collections.emptyList(),
-                List.of(step(mod, PERM_MOD))
+                List.of(step(mod, PERM_MOD)),
+                new BrewAPIImpl()
         );
 
         // modifierCount = 0, so adding one modifier makes it go to -1
@@ -439,7 +454,8 @@ class RecipeRegistryTest {
         RecipeRegistry registry = new RecipeRegistry(
                 List.of(shortRecipe, longRecipe),
                 Collections.emptyList(),
-                Collections.emptyList()
+                Collections.emptyList(),
+                new BrewAPIImpl()
         );
 
         IPotionResult result = registry.search(
@@ -486,7 +502,7 @@ class RecipeRegistryTest {
             Collections.emptySet()
         );
 
-        RecipeRegistry registry = new RecipeRegistry(java.util.List.of(recipe), java.util.List.of(), java.util.List.of());
+        RecipeRegistry registry = new RecipeRegistry(java.util.List.of(recipe), java.util.List.of(), java.util.List.of(), new BrewAPIImpl());
         server.addPlayer("tester");
         PlayerMock player = (PlayerMock) server.getPlayerExact("tester");
         player.addAttachment(plugin, "alchemica.test", true);
@@ -517,7 +533,7 @@ class RecipeRegistryTest {
         );
 
         RecipeRegistry registry = new RecipeRegistry(
-            List.of(recipe), Collections.emptyList(), List.of(modStep)
+            List.of(recipe), Collections.emptyList(), List.of(modStep), new BrewAPIImpl()
         );
 
         // Modifier is globally registered but disabled for this recipe → BAD_RECIPE_PATH
@@ -542,7 +558,7 @@ class RecipeRegistryTest {
             Collections.emptySet()
         );
 
-        RecipeRegistry registry = new RecipeRegistry(java.util.List.of(recipe), java.util.List.of(), java.util.List.of());
+        RecipeRegistry registry = new RecipeRegistry(java.util.List.of(recipe), java.util.List.of(), java.util.List.of(), new BrewAPIImpl());
         server.addPlayer("tester2");
         PlayerMock player = (PlayerMock) server.getPlayerExact("tester2");
         player.addAttachment(plugin, "alchemica.test", true);
@@ -554,5 +570,116 @@ class RecipeRegistryTest {
         assertNotNull(lore);
         assertEquals(2, lore.size());
         assertTrue(lore.get(0).contains("Line one"));
+    }
+
+    // ------------------------------------------------------------------
+    // Custom recipe tests
+    // ------------------------------------------------------------------
+
+    @Test
+    void search_customRecipe_returnsSuccess() {
+        BrewAPIImpl api = new BrewAPIImpl();
+        ItemStack expected = new org.bukkit.inventory.ItemStack(org.bukkit.Material.NETHER_WART);
+        CustomRecipe recipe = new CustomRecipe.Builder(NamespacedKey.minecraft("custom"))
+            .ingredients("minecraft:nether_wart", "minecraft:gold_ingot")
+            .result(ctx -> expected)
+            .build();
+        api.registerRecipe(recipe);
+
+        RecipeRegistry registry = new RecipeRegistry(List.of(), List.of(), List.of(), api);
+        List<CauldronIngredient> ingredients = List.of(
+            new CauldronIngredient(NamespacedKey.minecraft("nether_wart")),
+            new CauldronIngredient(NamespacedKey.minecraft("gold_ingot"))
+        );
+
+        IPotionResult result = registry.search(settings(player, 3, 3), ingredients);
+        assertEquals(Status.SUCCESS, result.getStatus());
+        assertSame(expected, result.getStack());
+        assertEquals(NamespacedKey.minecraft("custom"), result.getItemKey());
+    }
+
+    @Test
+    void search_customRecipe_nullResultFn_returnsBadRecipePath() {
+        BrewAPIImpl api = new BrewAPIImpl();
+        CustomRecipe recipe = new CustomRecipe.Builder(NamespacedKey.minecraft("null_recipe"))
+            .ingredients("minecraft:nether_wart")
+            .result(ctx -> null)
+            .build();
+        api.registerRecipe(recipe);
+
+        RecipeRegistry registry = new RecipeRegistry(List.of(), List.of(), List.of(), api);
+        List<CauldronIngredient> ingredients = List.of(
+            new CauldronIngredient(NamespacedKey.minecraft("nether_wart"))
+        );
+
+        IPotionResult result = registry.search(settings(player, 3, 3), ingredients);
+        assertEquals(Status.BAD_RECIPE_PATH, result.getStatus());
+    }
+
+    @Test
+    void search_customRecipe_disabledModifierPresent_returnsBadRecipePath() {
+        BrewAPIImpl api = new BrewAPIImpl();
+        CustomRecipe recipe = new CustomRecipe.Builder(NamespacedKey.minecraft("no_glow"))
+            .ingredients("minecraft:nether_wart")
+            .result(ctx -> new org.bukkit.inventory.ItemStack(org.bukkit.Material.NETHER_WART))
+            .disabledModifier("lesser-amplify")
+            .build();
+        api.registerRecipe(recipe);
+
+        CauldronIngredient glowstone = new CauldronIngredient(
+            NamespacedKey.minecraft("glowstone_dust"));
+        RecipeRegistry.RegistryStep modStep = new RecipeRegistry.RegistryStep(glowstone, ctx -> {},
+            "alchemica.lesser-amplify", "lesser-amplify");
+        RecipeRegistry registry = new RecipeRegistry(List.of(), List.of(), List.of(modStep), api);
+
+        List<CauldronIngredient> ingredients = List.of(
+            new CauldronIngredient(NamespacedKey.minecraft("nether_wart")),
+            new CauldronIngredient(NamespacedKey.minecraft("glowstone_dust"))
+        );
+
+        IPotionResult result = registry.search(settings(player, 3, 3), ingredients);
+        assertEquals(Status.BAD_RECIPE_PATH, result.getStatus());
+    }
+
+    @Test
+    void getSuggestions_customRecipe_suggestsMissingIngredients() {
+        BrewAPIImpl api = new BrewAPIImpl();
+        CustomRecipe recipe = new CustomRecipe.Builder(NamespacedKey.minecraft("custom"))
+            .ingredients("minecraft:nether_wart", "minecraft:gold_ingot")
+            .result(ctx -> new org.bukkit.inventory.ItemStack(org.bukkit.Material.NETHER_WART))
+            .build();
+        api.registerRecipe(recipe);
+
+        RecipeRegistry registry = new RecipeRegistry(List.of(), List.of(), List.of(), api);
+        List<CauldronIngredient> partial = List.of(
+            new CauldronIngredient(NamespacedKey.minecraft("nether_wart"))
+        );
+
+        Set<CauldronIngredient> suggestions = registry.getSuggestions(partial);
+        assertTrue(suggestions.stream()
+            .anyMatch(i -> i.getItemKey().equals(NamespacedKey.minecraft("gold_ingot"))));
+    }
+
+    @Test
+    void getSuggestions_customRecipe_doesNotSuggestModifiers() {
+        BrewAPIImpl api = new BrewAPIImpl();
+        CustomRecipe recipe = new CustomRecipe.Builder(NamespacedKey.minecraft("custom"))
+            .ingredients("minecraft:nether_wart")
+            .result(ctx -> new org.bukkit.inventory.ItemStack(org.bukkit.Material.NETHER_WART))
+            .build();
+        api.registerRecipe(recipe);
+
+        CauldronIngredient glowstone = new CauldronIngredient(
+            NamespacedKey.minecraft("glowstone_dust"));
+        RecipeRegistry.RegistryStep modStep = new RecipeRegistry.RegistryStep(glowstone, ctx -> {},
+            "alchemica.lesser-amplify", "lesser-amplify");
+        RecipeRegistry registry = new RecipeRegistry(List.of(), List.of(), List.of(modStep), api);
+
+        List<CauldronIngredient> full = List.of(
+            new CauldronIngredient(NamespacedKey.minecraft("nether_wart"))
+        );
+        Set<CauldronIngredient> suggestions = registry.getSuggestions(full);
+        assertFalse(suggestions.stream()
+            .anyMatch(i -> i.getItemKey().equals(NamespacedKey.minecraft("glowstone_dust"))));
     }
 }
