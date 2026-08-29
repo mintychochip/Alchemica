@@ -5,6 +5,9 @@ plugins {
 }
 dependencies {
     implementation(project(":api"))
+    implementation("org.aincraft:utilities-common:2026.08.27")
+    implementation("org.aincraft:utilities-db-sql:2026.08.27")
+    implementation("org.xerial:sqlite-jdbc:3.45.3.0")
     implementation(project(":versions:base")) {
         exclude(group = "org.spigotmc", module = "spigot-api")
     }
@@ -25,14 +28,13 @@ dependencies {
 }
 
 
-// Allow resolving paper-api/mockbukkit (requires JVM 21) on compile/test classpaths
-// even when the global toolchain is configured for 17. Bytecode still targets 17/21.
+// Allow resolving paper-api/mockbukkit and Utilities SQL (JVM 25) on compile/test classpaths.
 listOf("compileClasspath", "testCompileClasspath", "testRuntimeClasspath").forEach { configName ->
     configurations.named(configName) {
         attributes {
             attribute(
                 org.gradle.api.attributes.java.TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE,
-                21
+                25
             )
         }
     }
@@ -40,21 +42,23 @@ listOf("compileClasspath", "testCompileClasspath", "testRuntimeClasspath").forEa
 
 tasks.withType<Test>().configureEach {
     useJUnitPlatform()
-    // MockBukkit requires Java 17+ — override the global release=8 for test compilation
     jvmArgs("-Xmx512m")
+    javaLauncher.set(javaToolchains.launcherFor {
+        languageVersion.set(JavaLanguageVersion.of(25))
+    })
 }
 
 tasks.named<JavaCompile>("compileJava") {
-    options.release.set(17)
+    options.release.set(25)
     javaCompiler.set(javaToolchains.compilerFor {
-        languageVersion.set(JavaLanguageVersion.of(21))
+        languageVersion.set(JavaLanguageVersion.of(25))
     })
 }
 
 tasks.named<JavaCompile>("compileTestJava") {
-    options.release.set(21)
+    options.release.set(25)
     javaCompiler.set(javaToolchains.compilerFor {
-        languageVersion.set(JavaLanguageVersion.of(21))
+        languageVersion.set(JavaLanguageVersion.of(25))
     })
 }
 
@@ -82,7 +86,7 @@ tasks {
         val toolchains = project.extensions.getByType<JavaToolchainService>()
         javaLauncher.set(
             toolchains.launcherFor {
-                languageVersion.set(JavaLanguageVersion.of(21))
+                languageVersion.set(JavaLanguageVersion.of(25))
             }
         )
         minecraftVersion("1.21.11")
@@ -91,7 +95,6 @@ tasks {
 
     named<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar>("shadowJar") {
         archiveFileName.set("${rootProject.name}-${project.version}.jar")
-        destinationDirectory.set(file("C:\\Users\\justi\\Desktop\\paper\\plugins"))
     }
 }
 

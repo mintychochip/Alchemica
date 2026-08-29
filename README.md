@@ -12,6 +12,8 @@ A custom potion brewing plugin for Minecraft Paper/Spigot servers. Create custom
 
 ## Installation
 
+> **Runtime requirement:** this build uses `utilities-db-sql` 2026.08.27, which is compiled for Java 25. Run the plugin on a Java 25 server JVM; it is not compatible with Java 17 or Java 21 hosts.
+
 1. Download the latest release from [Releases](https://github.com/mintychochip/Alchemica/releases)
 2. Place `Brew.jar` in your server's `plugins/` folder
 3. Start the server - config files will be generated automatically
