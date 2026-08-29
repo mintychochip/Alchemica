@@ -16,8 +16,6 @@ import org.aincraft.dao.IPlayerSettings;
 import org.aincraft.providers.ICauldronProvider;
 import org.aincraft.providers.IVersionProviders;
 import org.aincraft.providers.VersionProviderFactory;
-import org.aincraft.event.BrewCompleteEvent;
-import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
@@ -213,13 +211,12 @@ final class CauldronListener implements Listener {
     if (result.getStatus() == Status.SUCCESS) {
       ItemStack stack = result.getStack();
       if (stack != null) {
-        BrewCompleteEvent brewEvent = new BrewCompleteEvent(
-            player,
-            new ArrayList<>(cauldron.getIngredients()),
-            stack,
-            result.getItemKey()
-        );
-        Bukkit.getPluginManager().callEvent(brewEvent);
+        BrewCompleteDomainEvent brewEvent =
+            internal.postBrewComplete(
+                player,
+                new ArrayList<>(cauldron.getIngredients()),
+                stack,
+                result.getItemKey());
         // Both conditions checked: isCancelled() is the explicit cancel path;
         // getResult() == null is the silent-suppress path (a handler called setResult(null)).
         if (!brewEvent.isCancelled() && brewEvent.getResult() != null) {

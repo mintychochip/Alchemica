@@ -43,7 +43,9 @@ public final class Brew implements IBrew {
   }
 
   public void refresh() {
-    IStorage database = internal.getDatabase();
+    Internal previous = internal;
+    previous.close();
+    IStorage database = previous.getDatabase();
     try {
       database.shutdown();
     } catch (Exception e) {
@@ -92,7 +94,9 @@ public final class Brew implements IBrew {
   public void disable() {
     plugin.getServer().getServicesManager().unregisterAll(plugin);
     AlchemicaAPI.setInstance(null);
-    IStorage database = internal.getDatabase();
+    Internal previous = internal;
+    previous.close();
+    IStorage database = previous.getDatabase();
     try {
       database.shutdown();
     } catch (Exception e) {

@@ -14,8 +14,28 @@ allprojects {
         mavenCentral()
         maven("https://repo.papermc.io/repository/maven-public/")
         maven("https://oss.sonatype.org/content/groups/public/")
-    }
+        exclusiveContent {
+            forRepository {
+                maven {
+                    name = "utilitiesGitHubPackages"
+                    url = uri("https://maven.pkg.github.com/mintychochip/Utilities")
+                    credentials {
+                        username = project.findProperty("gpr.user") as String?
+                            ?: System.getenv("GITHUB_ACTOR")
+                            ?: System.getenv("USERNAME")
+                            ?: ""
+                        password = project.findProperty("gpr.key") as String?
+                            ?: System.getenv("GITHUB_TOKEN")
+                            ?: ""
+                    }
+                }
+            }
+            filter {
+                includeGroup("org.aincraft")
+            }
+        }
 
+    }
     plugins.withType<JavaPlugin> {
         extensions.configure<JavaPluginExtension> {
             toolchain.languageVersion.set(JavaLanguageVersion.of(21)) // force Java 21 everywhere
